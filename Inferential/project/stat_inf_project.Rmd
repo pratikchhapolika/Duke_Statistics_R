@@ -1,0 +1,61 @@
+---
+title: "GSS Data:  Religion and Space Exploration"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed:  true
+      smooth_scroll: true
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+```{r load-data}
+#load("gss.Rdata")
+```
+
+
+
+* * *
+
+## Part 1: Data
+The General Social Survey (GSS) is a survey of a representative sample of the American public. In particular, it is a representative sample of "English speaking persons 18 years of age or over, living in noninstitutional arrangements within the United States". The GSS has been conducted either yearly or every other year since 1972 by the National Opinion Research Center (NORC), which is affiliated with the University of Chicago. The survey is funded by the National Science Foundation. In the early years, about 1,500 people were interviewed in each wave. In recent years, between about 3,000 and 4,500 people have been interviewed in each wave. The individuals surveyed are different from year to year.[2]
+
+From 1972 to 1974, quota sampling was used to select the individuals in the sample. Both quota and random sampling were used in 1975 and 1976. Starting in 1977, each sample in the GSS was selected at random.[2]
+
+It is a retrospective observational study seeking to determine if there is a relationship between how secure they feel in the job. It is not an experiment. This study is not changing or "experimenting" with the data to determine relationships within the data. This study will not be randomizing cases into treatment and control groups in order to try different experiments on the treatment group to see if they have a effect , correlation or other relationship between the experiment and outcome. We are observing the data already collected and will be analyzing that data to answer a specific question to see if there is a relationship between two data elements. No casuality inferences to the general population are possible because of this. The scope of inference on this dataset will be limited to the variables of interest above filtered on only the years of the survey after 2007/2008, that is 2010 and 2012. The dataset is also being limited to only those who are or have been working. All non-responses (NAs) have also been removed. This makes for a nice tidy dataset of 1229 observations. The observations have been randomly sampled from less than 10% of the U.S. population. There are more than 5 within each of the variable groups of interest. Therefore we can do some statistical inference on this data set in order to make some generalized comments about the working U.S. population and only the working population. In other words, it is reasonable to generalize from this data to make general observations about the U.S. Workforce based on this data.
+
+* * *
+
+## Part 2: Research question
+
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+* * *
+
+## Part 4: Inference
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
