@@ -1,7 +1,7 @@
 library(ggplot2)
 library(plyr)#Used for the revalue function
 library(dplyr)
-
+library(RColorBrewer)
 library(statsr)
 
 
@@ -21,6 +21,20 @@ table(modData2$attend, modData2$natspac)
 n_distinct(modData$attend)
 levels(modData2$attend)
 
+plot(gss$attend,  col=brewer.pal(3, "Accent"))
+ggplot(gss, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.text.x=element_text(angle=90))
+ggplot(gss, aes(x=natspac, fill=factor(natspac))) + geom_bar() + theme(axis.text.x=element_text(angle=90))
+
 modData2$attend <- revalue(modData2$attend, c("Never"="Rarely", "Lt Once A Year"="Rarely", "Once A Year"="Rarely", "Sevrl Times A Yr"="Rarely"))
 modData2$attend <- revalue(modData2$attend, c("Once A Month"="Frequently", "2-3X A Month"="Frequently", "Nrly Every Week"="Frequently", 
                                               "Every Week"="Frequently", "More Thn Once Wk"="Frequently"))
+table(modData2)
+tmpTable <- table(modData2)
+tmpTable <- addmargins(tmpTable)
+
+
+plot(modData2$attend, modData2$natspac, col=brewer.pal(3, "Accent"))
+library(vcd)
+P10 <- mosaic(~attend + natspac, data = modData2, shade=TRUE)
+
+

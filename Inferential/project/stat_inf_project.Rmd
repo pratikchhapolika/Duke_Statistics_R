@@ -12,6 +12,8 @@ output:
       smooth_scroll: true
 ---
 
+http://rstudio-pubs-static.s3.amazonaws.com/15440_d09eed4b18d74e53a309e0a737056711.html
+
 ## Setup
 
 ### Load packages
@@ -32,30 +34,99 @@ library(statsr)
 * * *
 
 ## Part 1: Data
-The General Social Survey (GSS) is a survey of a representative sample of the American public. In particular, it is a representative sample of "English speaking persons 18 years of age or over, living in noninstitutional arrangements within the United States". The GSS has been conducted either yearly or every other year since 1972 by the National Opinion Research Center (NORC), which is affiliated with the University of Chicago. The survey is funded by the National Science Foundation. In the early years, about 1,500 people were interviewed in each wave. In recent years, between about 3,000 and 4,500 people have been interviewed in each wave. The individuals surveyed are different from year to year.[2]
+The General Social Survey (GSS) is a survey of a representative sample of the American public. It is a representative sample of "English speaking persons 18 years of age or over, living in noninstitutional arrangements within the United States". The GSS has been conducted either yearly or every other year since 1972 by the National Opinion Research Center (NORC). The survey is funded by the National Science Foundation.
 
-From 1972 to 1974, quota sampling was used to select the individuals in the sample. Both quota and random sampling were used in 1975 and 1976. Starting in 1977, each sample in the GSS was selected at random.[2]
+From 1972 to 1974, quota sampling was used to select the individuals in the sample. Both quota and random sampling were used in 1975 and 1976. Starting in 1977, each sample in the GSS was selected at random.
 
 It is a retrospective observational study seeking to determine if there is a relationship between how secure they feel in the job. It is not an experiment. This study is not changing or "experimenting" with the data to determine relationships within the data. This study will not be randomizing cases into treatment and control groups in order to try different experiments on the treatment group to see if they have a effect , correlation or other relationship between the experiment and outcome. We are observing the data already collected and will be analyzing that data to answer a specific question to see if there is a relationship between two data elements. No casuality inferences to the general population are possible because of this. The scope of inference on this dataset will be limited to the variables of interest above filtered on only the years of the survey after 2007/2008, that is 2010 and 2012. The dataset is also being limited to only those who are or have been working. All non-responses (NAs) have also been removed. This makes for a nice tidy dataset of 1229 observations. The observations have been randomly sampled from less than 10% of the U.S. population. There are more than 5 within each of the variable groups of interest. Therefore we can do some statistical inference on this data set in order to make some generalized comments about the working U.S. population and only the working population. In other words, it is reasonable to generalize from this data to make general observations about the U.S. Workforce based on this data.
+
+The data that I will use for this analysis comes from the General Social Survey Cumulative File, specifically the 1972-2012 Coursera Extract.  The dataset that I will use was "cleaned" for this Coursera course to make it easier to use - missing values have been removed and factor variables have been added for ease of use.  The original dataset was collected by the General Social Survey, in face to face interviews with subjects and, in later years, some computer-assisted interviews.  FAQ on the original dataset can be [accessed by clicking here.](http://www3.norc.org/GSS/Templates/BaseTemplate.aspx?NRMODE=Published&NRNODEGUID=%7B2E75FB22-4D36-474F-AA28-97D9A2C04B6C%7D&NRORIGINALURL=%2FGSS%2BWebsite%2FFAQs%2F&NRCACHEHINT=NoModifyGuest#6) The codebook for the Coursera Extract can be [accessed by clicking here.](https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html)
+
+The cases I'll be analyzing are individual reponses to two survey questions in a given year. The full dataset that was provided by the course has 57061 cases.
+
+The two variables that I will be looking at are both ordinal categorical variables. The explanatory variable is "conclerg" which indicates the respondants level of confidence in organized religion (A Great Deal, Only Some, Hardly Any).  The response variable is "natpsac" which indicates the respondants opinion on the amount of government spending which goes to the space program (Too Little, About Right, Too Much).
+
+This is a retrospective observational study, since I'll be referencing a dataset that has already been collected.  This is not an experiment because I will not be randomly assigning subjects to treatments.
+
+The population of interest are people living in the United States. In order for an analysis to be generalizable to this population, data must be collected randomly to ensure independence. The [Wikipedia entry](http://en.wikipedia.org/wiki/General_Social_Survey) for this survey states that this data is collected randomly, and there has been much discussion in the class about whether or not this GSS data meets the criteria necessary for generalizability. For the purposes of this project, I am treating this data as sufficiently random, in order to perform analysis with the techniques we've been learning.
+
+Additionally, the extract of data that I'm using for this course does not include a variable indicating city or state where the respondant lives, only region. Without more specific geographical data, it's not possible to determine if the survey data is representative of the US as a whole, and so there could be additional bias caused by convenience sample.  
+
+Furthermore, exploratory analysis of other combinations of variables resulted in extremely low or completely missing values. Therefore, analysis attempted on these such variables would be biased for lack of data.
+
+Regarding causality, my analysis will not establish causal links.  In order to have causal links, it's necessary to perform an experiment which includes random assignment.  This is an observational study only.
+
+The explanatory variable in my study is a person's level of confidence in organized religion, and the response variable is their opinion on space program spending. The vertical locations at which the organized religion groups break into the Too Little, About Right, and Too Much categories for space program spending differ, which suggests that the variables appear to be dependent.  The analysis will provide clarity into whether these differences are statistically significant.
+
 
 * * *
 
 ## Part 2: Research question
 
+$H_{0}$: Opinions on government spending for space exploration and confidence in organized religion are <u>independent</u>. Opinions on space spending <u>do not vary</u> based on confidence in organized religion.
+
+$H_{A}$ Opinions on government spending for space exploration and confidence in organized religion are <u>dependent</u>. Opinions on space spending <u>do vary</u> based on confidence in organized religion.
+
+My analysis will quantify how different the observed counts are from the expected counts.  Large deviations from what would be expected based on chance alone would provide strong evidence in support of the alternative hypothesis ($H_{A}$).
+
+For this hypothesis, I'm dealing with two categorical variables, both of which have more than 2 levels.  So I will use the Chi-Square Independence Test.  Since both categorical variables have more than two levels, I am only able to perform a hypothesis test, because there are no associated confidence interval available for this scenario.
+
+For this hypothesis, I'm dealing with two categorical variables, both of which have more than 2 levels.  So I will use the Chi-Square Independence Test.  Since both categorical variables have more than two levels, I am only able to perform a hypothesis test, because there are no associated confidence interval available for this scenario.
+
+####Conditions Check
+
+Below are the conditions necessary for performing the Chi-Square Independence Test, and whether or not my data meets these conditions.
+
+1. Independence: Sampled observations must be independent:
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&#10004; <i>Random sample/assignment</i> - As stated in the introduction, we are treating this data as sufficiently random based on the description of the data collection methods in the GSS FAQ
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&#10004; <i>If sampling without replacement, n<10% of popultion</i> - The number of cases is definitely less than ten percent of the population of the US.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&#10004; <i>Each case only contributes to one cell in the table</i> - Since each case in the original dataset allows for only one answer to each question, we can confirm that each case only represents one cell in the table.
+
+2. Sample size
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&#10004; <i>Each cell must have at least 5 expected cases</i> - The table we'll use for this analysis has many more than 5 cases in each cell.
 
 
 * * *
 
 ## Part 3: Exploratory data analysis
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button (green button with orange arrow) above. Make sure that your code is visible
-in the project you submit. Delete this note when before you submit your work.
+
 
 * * *
 
 ## Part 4: Inference
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button (green button with orange arrow) above. Make sure that your code is visible
-in the project you submit. Delete this note when before you submit your work.
+
+
+####Results
+
+Based on the calculations above, this data has a chi-square statistic of 164.1179, degrees of freedom of 4 and a p-value of 1.912687e-34 (which is very, very small).  Since this p-value is much smaller than our significance level (.05) we can determine that we can reject the null hypothesis in favor of the alternative hypothesis.
+
+Because this data was composed of two categorical variables, both of which have more than two levels, the only analysis available is the Chi-Square Independence Test. It is not possible to do a confidence interval, and as such I have no additional analysis comparisons to make.
+
+
+### Conclusion:
+
+In short, based on the above analysis we conclude that opinions on government spending for space exploration and confidence in organized religion are dependent. Opinions on space spending do vary based on confidence in organized religion.
+
+So, what I have learned is that a person's confidence level of organized religion does have impact on their opinions of government spending for space exploration.  This exercise was incredibly useful in better understanding how to perform a Chi-Square Independence Test.  However, I didn't draw and conclusions or gain insights about society and opinions beyond what was stated in the hypothesis test.
+
+Possible future research would be to analyze this data further and attempt to understanding how each level within each variable affects the other.  Can we conclude that people who have strong confidence in religion want more or less spending for space?  Can we conclude that people who have mistrust of organized religion want more or less spending for space?  I would be interested in learning more specifics through additional analysis.
+
+
+
+### References
+
+Below are references to the data set that was used for this project's analysis.
+
+- Link to the dataset: http://bit.ly/dasi_gss_data
+- FAQ on the original dataset: http://www3.norc.org/GSS/Templates/BaseTemplate.aspx?NRMODE=Published&NRNODEGUID=%7B2E75FB22-4D36-47...) 
+- The codebook for the Coursera Extract: https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html)

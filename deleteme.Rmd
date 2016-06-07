@@ -1,0 +1,30 @@
+---
+title: "deleteme"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+From the above table we can see that the following relationships are true \[ P(\mathtt{'Too\ Little'}) \neq P(\mathtt{'Too\ Little'\ |\ 'A\ Great\ Deal'}) \neq P(\mathtt{'Too\ Little'\ |\ 'Only\ Some'}) \neq P(\mathtt{'Too\ Little'\ |\ 'Hardly\ Any'}) \\ P(\mathtt{'About\ Right'}) \neq P(\mathtt{'About\ Right'\ |\ 'A\ Great\ Deal'}) \neq P(\mathtt{'About\ Right'\ |\ 'Only\ Some'}) \neq P(\mathtt{'About\ Right'\ |\ 'Hardly\ Any'}) \\ P(\mathtt{'Too\ Much'}) \neq P(\mathtt{'Too\ Much'\ |\ 'A\ Great\ Deal'}) \neq P(\mathtt{'Too\ Much'\ |\ 'Only\ Some'}) \neq P(\mathtt{'Too\ Much'\ |\ 'Hardly\ Any'}) \\ \]
+
+The next step is to determine if the differences are due to chance or if the differences are significant. Before we do that, we must determine the expected value of each group in the table. \[ \begin{aligned} & P(\text{NATSCI = 'Too Little'}) = 2917 / 22752 = .1282 \\ & P(\text{NATSCI = 'About Right'}) = 9166 / 22752 = .4029 \\ & P(\text{NATSCI = 'Too Much'}) = 10669 / 22752 = .4689 \\ \end{aligned} \] 
+
+Using the above probabilities for the expected outcome of each response variable, we can calculate the expected value for each group:
+##              
+##               A Great Deal Only Some Hardly Any
+##   Too Little          1263      1447        207
+##   About Right         3969      4546        650
+##   Too Much            4620      5292        757
+
+
+This new table represents the relationship between the two variables if in fact they were independent. At this point, there is now enough information to perform the chi-squared test for independence. A hypothesis test with the following null and alternative hypthesis will be used to determine independence:
+
+\[ \begin{aligned} & H_0: \text{The variables are independent.} \\ & H_1: \text{There is some relationship between the variables.} \end{aligned} \]
+
+The degrees of freedom for this test is: \[ df = (\# rows - 1) \times (\# cols - 1) = 2 \times 2 = 4 \] and the chi-squared statistics is:
+
+\[ \chi^2 = \sum_{i=1}^9{(O_i - E_i)^2 / E_i} = 1033.793 \]
+
+Finally, we calculate the p-value:
