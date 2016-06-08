@@ -235,15 +235,14 @@ div.tocify {
 <h2>Setup</h2>
 <div id="load-packages" class="section level3">
 <h3>Load packages</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw">library</span>(ggplot2)</code></pre></div>
-<pre><code>## Warning: package 'ggplot2' was built under R version 3.2.4</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw">library</span>(dplyr)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw">library</span>(ggplot2)
+ <span class="kw">library</span>(dplyr)
  <span class="kw">library</span>(statsr)</code></pre></div>
 </div>
 <div id="load-data" class="section level3">
 <h3>Load data</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getwd</span>()</code></pre></div>
-<pre><code>## [1] &quot;C:/Users/cweaver/Documents/GitHub/Duke_Statistics_R/Inferential/project&quot;</code></pre>
+<pre><code>## [1] &quot;C:/Users/czwea/Documents/GitHub/Duke_Statistics_R/Inferential/project&quot;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="st">&quot;gss.Rdata&quot;</span>)</code></pre></div>
 </div>
 </div>
@@ -297,6 +296,30 @@ div.tocify {
 <div id="part-3-exploratory-data-analysis" class="section level2">
 <h2>Part 3: Exploratory data analysis</h2>
 </div>
+<div id="overall-frequent-attendance-rate-in-the-sample" class="section level1">
+<h1>Overall frequent attendance rate in the sample</h1>
+<p>overall_frq &lt;- tmpTable[2,4]/tmpTable[3,4]</p>
+<p>If in fact religious service attendance and support for space are independent (i.e. if in fact H0 is true), how namy of the persons supporting space exploration would we expect to frequently attend religious services?</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">———-</th>
+<th align="left">Too Little</th>
+<th align="left">About Right</th>
+<th align="left">Too Much</th>
+<th align="left">Total</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Rarely</td>
+<td align="left">1591</td>
+</tr>
+<tr class="even">
+<td align="left">Frequently</td>
+</tr>
+</tbody>
+</table>
 <div id="part-4-inference" class="section level2">
 <h2>Part 4: Inference</h2>
 <p>Expected Values</p>
@@ -320,6 +343,7 @@ div.tocify {
 <li>FAQ on the original dataset: <a href="http://www3.norc.org/GSS/Templates/BaseTemplate.aspx?NRMODE=Published&amp;NRNODEGUID=%7B2E75FB22-4D36-47">http://www3.norc.org/GSS/Templates/BaseTemplate.aspx?NRMODE=Published&amp;NRNODEGUID=%7B2E75FB22-4D36-47</a>…)</li>
 <li>The codebook for the Coursera Extract: <a href="https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html">https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html</a>)</li>
 </ul>
+</div>
 </div>
 </div>
 

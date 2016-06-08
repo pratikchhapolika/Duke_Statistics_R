@@ -19,30 +19,31 @@ http://rstudio-pubs-static.s3.amazonaws.com/15440_d09eed4b18d74e53a309e0a7370567
 ### Load packages
 
 ```{r load-packages, message = FALSE, warning=FALSE}
- library(ggplot2)
- library(dplyr)
- library(statsr)
+library(ggplot2)
+library(plyr)#Used for the revalue function
+library(dplyr)
+library(RColorBrewer)
+library(statsr)
 ```
 
 ### Load data
 ```{r load-data}
-getwd()
+#load("./Inferential/project/gss.Rdata")
 load("gss.Rdata")
 ```
 
+## Part 1: Introduction & Data Source 
+The data used in this analysis is from the General Social Survey (GSS).  It is a sociological survey used to collect data on demographic characteristics and attitudes of residents of the United States. The survey is a representative sample of "English speaking persons 18 years of age or over, living in noninstitutional arrangements within the United States". The GSS has been conducted since 1972.
 
-## Part 1: Data
-The General Social Survey (GSS) is a survey of a representative sample of the American public. It is a representative sample of "English speaking persons 18 years of age or over, living in noninstitutional arrangements within the United States". The GSS has been conducted either yearly or every other year since 1972 by the National Opinion Research Center (NORC). The survey is funded by the National Science Foundation.
+See these sources for detailed information on GSS:
 
-From 1972 to 1974, quota sampling was used to select the individuals in the sample. Both quota and random sampling were used in 1975 and 1976. Starting in 1977, each sample in the GSS was selected at random.
+- The data used in this analysis:  https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html
+- FAQ on the original dataset can be [accessed by clicking here.](http://www3.norc.org/GSS/Templates/BaseTemplate.aspx?NRMODE=Published&NRNODEGUID=%7B2E75FB22-4D36-474F-AA28-97D9A2C04B6C%7D&NRORIGINALURL=%2FGSS%2BWebsite%2FFAQs%2F&NRCACHEHINT=NoModifyGuest#6) 
+- The codebook for the Coursera Extract can be [accessed by clicking here.](https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html)
 
-It is a retrospective observational study seeking to determine if there is a relationship between how secure they feel in the job. It is not an experiment. This study is not changing or "experimenting" with the data to determine relationships within the data. This study will not be randomizing cases into treatment and control groups in order to try different experiments on the treatment group to see if they have a effect , correlation or other relationship between the experiment and outcome. We are observing the data already collected and will be analyzing that data to answer a specific question to see if there is a relationship between two data elements. No casuality inferences to the general population are possible because of this. The scope of inference on this dataset will be limited to the variables of interest above filtered on only the years of the survey after 2007/2008, that is 2010 and 2012. The dataset is also being limited to only those who are or have been working. All non-responses (NAs) have also been removed. This makes for a nice tidy dataset of 1229 observations. The observations have been randomly sampled from less than 10% of the U.S. population. There are more than 5 within each of the variable groups of interest. Therefore we can do some statistical inference on this data set in order to make some generalized comments about the working U.S. population and only the working population. In other words, it is reasonable to generalize from this data to make general observations about the U.S. Workforce based on this data.
+This analysis is a retrospective observational study seeking to determine if there is a relationship between the frequency people participate in religious services - a measure of how religious they are - and their view on the government funding space exploration.  job. It is not an experiment. No casuality inferences to the general population are possible - it is not an experiment. 
 
-The data that I will use for this analysis comes from the General Social Survey Cumulative File, specifically the 1972-2012 Coursera Extract.  The dataset that I will use was "cleaned" for this Coursera course to make it easier to use - missing values have been removed and factor variables have been added for ease of use.  The original dataset was collected by the General Social Survey, in face to face interviews with subjects and, in later years, some computer-assisted interviews.  FAQ on the original dataset can be [accessed by clicking here.](http://www3.norc.org/GSS/Templates/BaseTemplate.aspx?NRMODE=Published&NRNODEGUID=%7B2E75FB22-4D36-474F-AA28-97D9A2C04B6C%7D&NRORIGINALURL=%2FGSS%2BWebsite%2FFAQs%2F&NRCACHEHINT=NoModifyGuest#6) The codebook for the Coursera Extract can be [accessed by clicking here.](https://d396qusza40orc.cloudfront.net/statistics%2Fproject%2Fgss1.html)
-
-The cases I'll be analyzing are individual reponses to two survey questions in a given year. The full dataset that was provided by the course has 57061 cases.
-
-The two variables that I will be looking at are both categorical variables. The explanatory variable is "attend" which provides data on the GSS Survey the respondants participation in religious services.  The response variable is "natpsac" which indicates the respondants thoughts on the amount of government spending which goes to the space program.
+The two variables that I will be looking at are both categorical variables. *attend* which provides data on the GSS Survey the respondants participation in religious services.  The other variable, *natpsac*, which indicates the respondants thoughts on the amount of government spending which goes to the space program.
 
 Specifically:
 
@@ -60,7 +61,7 @@ Specifically:
 | 8 | MORE THN ONCE WK |
 | NA | DK,NA | 
 
-The specifc survery question is:  *How often do you attend religious services?*
+The survery question:  *How often do you attend religious services?*
 
 **NATSPAC**
 | **Value** | **Label** |
@@ -72,46 +73,43 @@ The specifc survery question is:  *How often do you attend religious services?*
 | NA | DK |
 | NA | NA |
 
-The specifc survery question is: *We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount. a. Space exploration program.*
-
-```{r variables}
-levels(gss$attend)
-levels(gss$natspac)
-```
-
-This is a retrospective observational study, since I'll be referencing a dataset that has already been collected.  This is not an experiment because I will not be randomly assigning subjects to treatments.
-
-The population of interest are people living in the United States. In order for an analysis to be generalizable to this population, data must be collected randomly to ensure independence. The [Wikipedia entry](http://en.wikipedia.org/wiki/General_Social_Survey) for this survey states that this data is collected randomly, and there has been much discussion in the class about whether or not this GSS data meets the criteria necessary for generalizability. For the purposes of this project, I am treating this data as sufficiently random, in order to perform analysis with the techniques we've been learning.
-
-Additionally, the extract of data that I'm using for this course does not include a variable indicating city or state where the respondant lives, only region. Without more specific geographical data, it's not possible to determine if the survey data is representative of the US as a whole, and so there could be additional bias caused by convenience sample.  
-
-Furthermore, exploratory analysis of other combinations of variables resulted in extremely low or completely missing values. Therefore, analysis attempted on these such variables would be biased for lack of data.
-
-Regarding causality, my analysis will not establish causal links.  In order to have causal links, it's necessary to perform an experiment which includes random assignment.  This is an observational study only.
-
-The explanatory variable in my study is a person's level of confidence in organized religion, and the response variable is their opinion on space program spending. The vertical locations at which the organized religion groups break into the Too Little, About Right, and Too Much categories for space program spending differ, which suggests that the variables appear to be dependent.  The analysis will provide clarity into whether these differences are statistically significant.
-
-
 ## Part 2: Research question
+The  survey question: *We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount. a. Space exploration program.*
+
+The analysis will provide clarity into whether these differences are statistically significant.
 
 $H_{0}$: Opinions on government spending for space exploration and the frequency of attending religious services are independent. 
 
 $H_{A}$ Opinions on government spending for space exploration and the frequency of attending religious services are dependent. 
 
-The analysis  quantifies how different the observed counts are from the expected counts.  Large deviations from what would be expected based on chance alone would provide strong evidence in support of the alternative hypothesis ($H_{A}$).
 
-For this hypothesis, there are two categorical variables.  One has two levels and the other has 3 levels.  Therefore the Chi-Square Independence Test is approriate.  .
 
-####Conditions Check
+###Why I find this Intersting
 
-Below are the conditions necessary for performing the Chi-Square Independence Test, and whether or not my data meets these conditions.
+Have you kept up on SpaceX (http://www.spacex.com/)?  SpaceX designs, manufactures and launches advanced rockets and spacecraft. The company was founded in 2002 to revolutionize space technology, with the ultimate goal of enabling people to live on other planets.
+
+SpaceX's Falcon 9 made history in 2012 when it delivered Dragon into the correct orbit for rendezvous with the International Space Station, making SpaceX the first commercial company ever to visit the station. Since then SpaceX has made multiple flights to the space station, both delivering and returning cargo for NASA. (Dragon is a spacecraft developed by SpaceX launched into space by the SpaceX Falcon 9 two-stage-to-orbit launch vehicle. SpaceX is developing a crewed version called the Dragon V2.)
+
+Even more impressive, December 21, 2015, SpaceX brought the first stage of its rocket back to Earth after delivering 11 commercial satellites into space.  (Blue Origin, the company led by Amazon.com founder Jeff Bezos, landed its New Shepard booster successfully the previous month but that occurred during a suborbital test.)  What is even more spectacular?  Returning the rocket back to Earth on a drone ship in the middle of the ocean!  On April 8, 2016, SpaceX lifted off delivering supplies tot eh International Space Station.  Before reaching the Space Station, the first stage of the rocket successfully landed on a drone ship that was stationed off the Florida coast. Watch it here.  https://www.youtube.com/watch?v=7pUAydjne5M
+
+It is my interest and excitement on the advances that SpaceX has demonstrated that led me to the analysis presented n this document.
+
+###Conditions Check
+
+This data is composed of two categorical variables one of which has more than two levels.  The appropriate statistical test for data like this is the Chi-Square Independence Test. 
+
+Below are the conditions necessary for performing the Chi-Square Independence Test.
 
 1. Independence: Sampled observations must be independent:
 
-**Random sample/assignment** - As stated in the introduction, we are treating this data as sufficiently random based on the description of the data collection methods in the GSS FAQ
+**Random sample/assignment** - This data is random based on the description of the data collection methods in the GSS FAQ.  There are potential source of bias in GSS:
 
+- “Face-to-face interviews” performed at the Uinversity of Chicago introduce a “convenience bias” as people close to Chicago may be more likely to participate. 
+-  The study may suffer from “voluntary response bias” since people with strong responses participate.  The voluntary participants may not be representative of the US population. 
 
-**If sampling without replacement, n<10% of popultion** - The number of cases is definitely less than ten percent of the population of the US.
+The dataset used for this report contains the results of 57,000 participants (much less than 10% of US population) which will be assumed to be large enough to mitigate the stated sources of bias.
+
+**If sampling without replacement, n<10% of popultion** - The number of cases is less than ten percent of the population of the US (323,341,000).
 
 **Each case only contributes to one cell in the table** - Since each case in the original dataset allows for only one answer to each question, we can confirm that each case only represents one cell in the table.
 
@@ -119,32 +117,166 @@ Below are the conditions necessary for performing the Chi-Square Independence Te
 
 **Each cell must have at least 5 expected cases** - The table we'll use for this analysis has many more than 5 cases in each cell.
 
-
 ## Part 3: Exploratory data analysis
+Before proceeding, let us first look and understand the data. We'll then clean and filter it before begining an analysis.
+
+###Data Preparation
+First will will filter the GSS data to contain only the variables of interest.  In addition to the *attend* and *natspac* varibles, I am also going to include the *year* variable so I can filter the data to include only newer data.  I posit that attitudes and position vary greatly between 1972 and 2012!
+
+Here is a breif summary of the data before too many changes are made:
+```{r dataPrep}
+#Prepare data
+varsOfInterest <- c("year", "attend", "natspac")
+modData <- select(gss, one_of(varsOfInterest))#57061 records
+summary(modData)
+```
+Arbitrarily on my part, I am going to limit the analysis data to date no older than the year 2000.  Aft erh code runs, the summary is redisplayed to ensure the ioperation was successful.
+```{r filterYear}
+modData <- modData %>% filter(year>1999)
+summary(modData)
+```
+I no longer require the *year* varible so I will remove it and then take a look at missing data.
+```{r}
+modData$year <- NULL
+countNAs <- apply(modData, 2, function(x) sum(is.na(x)))
+countNAs
+```
+There are quite of few records with missing data.  Let us clean that up so we can clean and complete records.
+```{r removeNA}
+modData <- modData %>% filter(attend != "NA", natspac != "NA")# records
+dim(modData)
+summary(modData)
+```
+Now that the data has been prepared, we see that we are left with 6,330 records.
+
+####Factor Management
+
+One more step before we begin the analysis phase of this project.  Let us inspect the factors in the working data set.
+
+```{r factorMgmt}
+table(modData)
+```
+Note the factor *Never* has no records.  Let us remove this.
+```{r removeFactor}
+#to drop factor see http://www.r-bloggers.com/r-drop-factor-levels-in-a-dataset/
+modData$attend <- modData$attend[modData$attend !="Never"]
+modData$attend <- factor(modData$attend)
+table(modData)
+```
+That looks better.
+
+We collected, filtered and clean our working data set.  Let us now explore it a bit more to make sure we are ready for analysis.
+```{r dataPlots}
+ggplot(modData, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.text.x=element_blank(), axis.ticks=element_blank()) +
+     ggtitle("Frequency of Attendance\nat Religious Services")
+ggplot(modData, aes(x=natspac, fill=factor(natspac))) + geom_bar() + theme(axis.text.x=element_blank(), axis.ticks=element_blank()) +
+     ggtitle("Public Support for\nSpace Exploration")
+plot(modData$attend, modData$natspac, col=brewer.pal(3, "Accent"))
+```
+To simplify - and make the analysis more measnigful, let's collapse the attend factors into just a copule of factors.  We'll create two *attend* factors from the many we have.  The division point with be 1 religious service/month.  If less than once a month, the survey count will be agregated into the new *Rarely* factor.  If more frequent, then the survey counts will be agregated into the *Frequently* factor.
+
+```{r reduceFactorCnt}
+modData$attend <- revalue(modData$attend, c("Lt Once A Year"="Rarely", "Once A Year"="Rarely", "Sevrl Times A Yr"="Rarely"))
+modData$attend <- revalue(modData$attend, c("Once A Month"="Frequently", "2-3X A Month"="Frequently", "Nrly Every Week"="Frequently", 
+                                              "Every Week"="Frequently", "More Thn Once Wk"="Frequently"))
+ggplot(modData, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.text.x=element_blank(), axis.ticks=element_blank()) +
+     ggtitle("Frequency of Attendance\nat Religious Services")
+plot(modData$attend, modData$natspac, col=brewer.pal(3, "Accent"))
+```
 
 
 ## Part 4: Inference
+###Hypothesis Tests
+For this hypothesis, there are two categorical variables - *attend* with 2 levels and *natspac* with 3 levels.  The Chi-Square Independence Test will be used to test the hypothesis modeled after our question described previously:
+
+$H_{0}$: Opinions on government spending for space exploration and the frequency of attending religious services are independent. 
+
+$H_{A}$ Opinions on government spending for space exploration and the frequency of attending religious services are dependent. 
+
+The analysis  quantifies how different the observed counts are from the expected counts.  Large deviations from what would be expected based on chance alone would provide strong evidence in support of the alternative hypothesis ($H_{A}$).
+
+###Chi-Square Test Independence Test 
+
+The test statistics is calculated as
+\[ \chi^2 = \sum_{i=1}^k{(O_i - E_i)^2 / E_i}\] 
+
+where: 
+`df = (R-1) * (C-1)`
+`O: observed`
+`E: expected`
+`k: number of cells`
+`R: number of rows`
+`C: number of columns`
+
+Thankfully, R provides the tools to solve this quickly and easily. Before tkaing too many shortcuts, let us collect the data R will use to perfrom the chi-square test calculation.
+
+To get started, we will add row and colum totals to the data set table view:
+
+```{r beginAnalysis1}
+tmpTable <- addmargins(table(modData))
+tmpTable
+```
+
+We now prepare a table that provides the observed and 
+
+#Overall frequent attendance rate in the sample
+overall_frq <- tmpTable[2,4]/tmpTable[3,4]
+overall_rare <- tmpTable[1,4]/tmpTable[3,4]
+#calculate expected
+rare_little <- round(tmpTable[3,1] * overall_rare)
+rare_right <- round(tmpTable[3,2] * overall_rare)
+rare_much <- round(tmpTable[3,3] * overall_rare)
+
+rare_total <- rare_little + rare_right + rare_much
+
+frq_little <- round(tmpTable[3,1] * overall_frq)
+frq_right <- round(tmpTable[3,2] * overall_frq)
+frq_much <- round(tmpTable[3,3] * overall_frq)
+
+frq_total <- frq_little + frq_right + frq_much
+```
+
+The overall frequent attendnace rate is `r tmpTable[2,4]/tmpTable[3,4]`
+
+If in fact religious service attendance and support for space are independent (i.e. if in fact H0 is true), how namy of the persons supporting space exploration would we expect to frequently attend religious services?
+
+| ---------- | Too Little | About Right | Too Much | Total |
+| ---------- | ---------- | ----------- | -------- | ----- |
+| Rarely | 1591 | 
+| Frequently |
+
 
 Expected Values 
 
-The test statistics is calculated as
-\[ \chi^2 = \sum_{i=1}^k{(O_i - E_i)^2 / E_i}\] where `df = (R-1) * (C-1)`
+```{r chi_sqTest}
+rarely <- c(1591, 4358, 4671)
+frequently <- c(1486, 6248, 7700)
+religion_space <- as.data.frame(rbind(rarely, frequently))
+names(religion_space) <- c("Too Little", "About Right", "Too Much")
+chisq.test(religion_space)
+```
 
 
 ####Results
 
 Based on the calculations above, this data has a chi-square statistic of 164.1179, degrees of freedom of 4 and a p-value of 1.912687e-34 (which is very, very small).  Since this p-value is much smaller than our significance level (.05) we can determine that we can reject the null hypothesis in favor of the alternative hypothesis.
 
-Because this data was composed of two categorical variables, both of which have more than two levels, the only analysis available is the Chi-Square Independence Test. It is not possible to do a confidence interval, and as such I have no additional analysis comparisons to make.
-
 
 ### Conclusion:
+
+I will articulate the interpretation of the very small p-value in several different ways:
+
+1.It provides strong evidence to suggest that gender and ice cream flavour preference are dependent or have some association.  (This is a probabilistic interpretation, but it is not very clear what it means on a practical level.)
+2.It provides strong evidence to suggest that men and women tend to have difference preferences for ice cream flavours.  (This is a practical implication.)
+http://www.r-bloggers.com/the-chi-squared-test-of-independence-an-example-in-both-r-and-sas/
 
 In short, based on the above analysis we conclude that opinions on government spending for space exploration and confidence in organized religion are dependent. Opinions on space spending do vary based on confidence in organized religion.
 
 So, what I have learned is that a person's confidence level of organized religion does have impact on their opinions of government spending for space exploration.  This exercise was incredibly useful in better understanding how to perform a Chi-Square Independence Test.  However, I didn't draw and conclusions or gain insights about society and opinions beyond what was stated in the hypothesis test.
 
 Possible future research would be to analyze this data further and attempt to understanding how each level within each variable affects the other.  Can we conclude that people who have strong confidence in religion want more or less spending for space?  Can we conclude that people who have mistrust of organized religion want more or less spending for space?  I would be interested in learning more specifics through additional analysis.
+
+Because this is not an experiment, the analysis and conclusion will not establish causal links.  In order to have causal links, it's necessary to perform an experiment which includes random assignment.
 
 ### References
 
