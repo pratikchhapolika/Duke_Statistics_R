@@ -18,20 +18,18 @@ http://rstudio-pubs-static.s3.amazonaws.com/15440_d09eed4b18d74e53a309e0a7370567
 
 ### Load packages
 
-```{r load-packages, message = FALSE}
-library(ggplot2)
-library(dplyr)
-library(statsr)
+```{r load-packages, message = FALSE, warning=FALSE}
+ library(ggplot2)
+ library(dplyr)
+ library(statsr)
 ```
 
 ### Load data
 ```{r load-data}
-#load("gss.Rdata")
+getwd()
+load("gss.Rdata")
 ```
 
-
-
-* * *
 
 ## Part 1: Data
 The General Social Survey (GSS) is a survey of a representative sample of the American public. It is a representative sample of "English speaking persons 18 years of age or over, living in noninstitutional arrangements within the United States". The GSS has been conducted either yearly or every other year since 1972 by the National Opinion Research Center (NORC). The survey is funded by the National Science Foundation.
@@ -44,7 +42,42 @@ The data that I will use for this analysis comes from the General Social Survey 
 
 The cases I'll be analyzing are individual reponses to two survey questions in a given year. The full dataset that was provided by the course has 57061 cases.
 
-The two variables that I will be looking at are both ordinal categorical variables. The explanatory variable is "conclerg" which indicates the respondants level of confidence in organized religion (A Great Deal, Only Some, Hardly Any).  The response variable is "natpsac" which indicates the respondants opinion on the amount of government spending which goes to the space program (Too Little, About Right, Too Much).
+The two variables that I will be looking at are both categorical variables. The explanatory variable is "attend" which provides data on the GSS Survey the respondants participation in religious services.  The response variable is "natpsac" which indicates the respondants thoughts on the amount of government spending which goes to the space program.
+
+Specifically:
+
+**ATTEND**
+| **Value** | **Label** |
+| --------- | --------- |
+| 0 | Never |
+| 1 | LT ONCE A YEAR |
+| 2 | ONCE A YEAR |
+| 3 | SEVRL TIMES A YR |
+| 4 | ONCE A MONTH |
+| 5 | 2-3X A MONTH |
+| 6 | NRLY EVERY WEEK |
+| 7 | EVERY WEEK |
+| 8 | MORE THN ONCE WK |
+| NA | DK,NA | 
+
+The specifc survery question is:  *How often do you attend religious services?*
+
+**NATSPAC**
+| **Value** | **Label** |
+| --------- | --------- |
+| NA | IAP |
+| 1 | TOO LITTLE |
+| 2 | ABOUT RIGHT |
+| 3 | TOO MUCH |
+| NA | DK |
+| NA | NA |
+
+The specifc survery question is: *We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount. a. Space exploration program.*
+
+```{r variables}
+levels(gss$attend)
+levels(gss$natspac)
+```
 
 This is a retrospective observational study, since I'll be referencing a dataset that has already been collected.  This is not an experiment because I will not be randomly assigning subjects to treatments.
 
@@ -59,19 +92,15 @@ Regarding causality, my analysis will not establish causal links.  In order to h
 The explanatory variable in my study is a person's level of confidence in organized religion, and the response variable is their opinion on space program spending. The vertical locations at which the organized religion groups break into the Too Little, About Right, and Too Much categories for space program spending differ, which suggests that the variables appear to be dependent.  The analysis will provide clarity into whether these differences are statistically significant.
 
 
-* * *
-
 ## Part 2: Research question
 
-$H_{0}$: Opinions on government spending for space exploration and confidence in organized religion are <u>independent</u>. Opinions on space spending <u>do not vary</u> based on confidence in organized religion.
+$H_{0}$: Opinions on government spending for space exploration and the frequency of attending religious services are independent. 
 
-$H_{A}$ Opinions on government spending for space exploration and confidence in organized religion are <u>dependent</u>. Opinions on space spending <u>do vary</u> based on confidence in organized religion.
+$H_{A}$ Opinions on government spending for space exploration and the frequency of attending religious services are dependent. 
 
-My analysis will quantify how different the observed counts are from the expected counts.  Large deviations from what would be expected based on chance alone would provide strong evidence in support of the alternative hypothesis ($H_{A}$).
+The analysis  quantifies how different the observed counts are from the expected counts.  Large deviations from what would be expected based on chance alone would provide strong evidence in support of the alternative hypothesis ($H_{A}$).
 
-For this hypothesis, I'm dealing with two categorical variables, both of which have more than 2 levels.  So I will use the Chi-Square Independence Test.  Since both categorical variables have more than two levels, I am only able to perform a hypothesis test, because there are no associated confidence interval available for this scenario.
-
-For this hypothesis, I'm dealing with two categorical variables, both of which have more than 2 levels.  So I will use the Chi-Square Independence Test.  Since both categorical variables have more than two levels, I am only able to perform a hypothesis test, because there are no associated confidence interval available for this scenario.
+For this hypothesis, there are two categorical variables.  One has two levels and the other has 3 levels.  Therefore the Chi-Square Independence Test is approriate.  .
 
 ####Conditions Check
 
@@ -79,31 +108,27 @@ Below are the conditions necessary for performing the Chi-Square Independence Te
 
 1. Independence: Sampled observations must be independent:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&#10004; <i>Random sample/assignment</i> - As stated in the introduction, we are treating this data as sufficiently random based on the description of the data collection methods in the GSS FAQ
+**Random sample/assignment** - As stated in the introduction, we are treating this data as sufficiently random based on the description of the data collection methods in the GSS FAQ
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&#10004; <i>If sampling without replacement, n<10% of popultion</i> - The number of cases is definitely less than ten percent of the population of the US.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&#10004; <i>Each case only contributes to one cell in the table</i> - Since each case in the original dataset allows for only one answer to each question, we can confirm that each case only represents one cell in the table.
+**If sampling without replacement, n<10% of popultion** - The number of cases is definitely less than ten percent of the population of the US.
+
+**Each case only contributes to one cell in the table** - Since each case in the original dataset allows for only one answer to each question, we can confirm that each case only represents one cell in the table.
 
 2. Sample size
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&#10004; <i>Each cell must have at least 5 expected cases</i> - The table we'll use for this analysis has many more than 5 cases in each cell.
+**Each cell must have at least 5 expected cases** - The table we'll use for this analysis has many more than 5 cases in each cell.
 
-
-* * *
 
 ## Part 3: Exploratory data analysis
 
 
-
-* * *
-
 ## Part 4: Inference
 
+Expected Values 
+
+The test statistics is calculated as
+\[ \chi^2 = \sum_{i=1}^k{(O_i - E_i)^2 / E_i}\] where `df = (R-1) * (C-1)`
 
 
 ####Results
@@ -120,8 +145,6 @@ In short, based on the above analysis we conclude that opinions on government sp
 So, what I have learned is that a person's confidence level of organized religion does have impact on their opinions of government spending for space exploration.  This exercise was incredibly useful in better understanding how to perform a Chi-Square Independence Test.  However, I didn't draw and conclusions or gain insights about society and opinions beyond what was stated in the hypothesis test.
 
 Possible future research would be to analyze this data further and attempt to understanding how each level within each variable affects the other.  Can we conclude that people who have strong confidence in religion want more or less spending for space?  Can we conclude that people who have mistrust of organized religion want more or less spending for space?  I would be interested in learning more specifics through additional analysis.
-
-
 
 ### References
 

@@ -19,7 +19,13 @@ modData2 <- modData2 %>% filter(attend != "NA", natspac != "NA")
 table(modData2$attend, modData2$natspac)
 
 n_distinct(modData$attend)
+
 levels(modData2$attend)
+#to drop factor see http://www.r-bloggers.com/r-drop-factor-levels-in-a-dataset/
+modData2$attend <- modData2$attend[modData2$attend !="Never"]
+modData2$attend <- factor(modData2$attend)
+levels(modData2$attend)
+
 
 plot(gss$attend,  col=brewer.pal(3, "Accent"))
 ggplot(gss, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.text.x=element_text(angle=90))
@@ -29,7 +35,7 @@ modData2$attend <- revalue(modData2$attend, c("Never"="Rarely", "Lt Once A Year"
 modData2$attend <- revalue(modData2$attend, c("Once A Month"="Frequently", "2-3X A Month"="Frequently", "Nrly Every Week"="Frequently", 
                                               "Every Week"="Frequently", "More Thn Once Wk"="Frequently"))
 table(modData2)
-tmpTable <- table(modData2)
+tmpTable <- table(modData2$natspac, modData2$attend)
 tmpTable <- addmargins(tmpTable)
 
 
