@@ -13,15 +13,18 @@ output:
 ---
 
 ## Part 1: Introduction & Data Source 
-The data used in this analysis is from the General Social Survey (GSS).  It is a sociological survey used to collect data on demographic characteristics and attitudes of residents of the United States. The survey is a representative sample of "English speaking persons 18 years of age or over, living in non-institutional arrangements within the United States". The GSS has been conducted since 1972.
+The data used in this analysis is from the General Social Survey (GSS).  It is a sociological survey used to collect data on demographic characteristics and attitudes of residents of the United States. The survey is a representative sample of "English speaking persons 18 years of age or over, living in non-institutional arrangements within the United States". 
 
-This analysis is a retrospective observational study seeking to determine if there is a relationship between the frequency people participate in religious services - a measure of how religious they are - and their view on the government funding space exploration.  job. It is not an experiment. No causality inferences to the general population are possible - it is not an experiment. 
+This analysis is a retrospective observational study seeking to determine if there is a relationship between the frequency people participate in religious services - a measure of how religious they are - and their view on the government funding space exploration.  Because this is not an experiment, no causality inferences to the general population can be made. 
 
-The two variables that I will be looking at are both categorical variables. *attend* which provides data on the GSS Survey the respondents participation in religious services.  The other variable, *natpsac*, which indicates the respondents thoughts on the amount of government spending which goes to the space program.
+The two variables evaluated are categorical variables.
 
-Specifically:
+- *attend* which provides data on the GSS Survey the respondents participation in religious services.  
+- *natpsac*, which indicates the respondents thoughts on the amount of government spending which goes to the space program.
+
 
 **ATTEND**
+The survey question:  *How often do you attend religious services?*
 
 | **Value** | **Label** |
 | --------- | --------- |
@@ -36,9 +39,9 @@ Specifically:
 | 8 | MORE THN ONCE WK |
 | NA | DK,NA | 
 
-The survey question:  *How often do you attend religious services?*
 
 **NATSPAC**
+The  survey question: *We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount: Space exploration program.*
 
 | **Value** | **Label** |
 | --------- | --------- |
@@ -50,13 +53,8 @@ The survey question:  *How often do you attend religious services?*
 | NA | NA |
 
 ## Part 2: Research question
-The  survey question: *We are faced with many problems in this country, none of which can be solved easily or inexpensively. I'm going to name some of these problems, and for each one I'd like you to tell me whether you think we're spending too much money on it, too little money, or about the right amount: Space exploration program.*
 
-The analysis will provide clarity into whether these differences are statistically significant.
-
-$H_{0}$: Opinions on government spending for space exploration and the frequency of attending religious services are independent. 
-
-$H_{A}$ Opinions on government spending for space exploration and the frequency of attending religious services are dependent. 
+*Is there an association between the frequency people attend religious services and their support for public funding for space exploration?*
 
 ###Why I find this Interesting
 
@@ -64,9 +62,9 @@ Have you kept up on [SpaceX](http://www.spacex.com/)?  SpaceX designs, manufactu
 
 SpaceX's Falcon 9 made history in 2012 when it delivered Dragon into the correct orbit for rendezvous with the International Space Station, making SpaceX the first commercial company ever to visit the station. Since then SpaceX has made multiple flights to the space station, both delivering and returning cargo for NASA. (Dragon is a spacecraft developed by SpaceX launched into space by the SpaceX Falcon 9 two-stage-to-orbit launch vehicle. SpaceX is developing a crewed version called the Dragon V2.)
 
-Even more impressive, December 21, 2015, SpaceX brought the first stage of its rocket back to Earth after delivering 11 commercial satellites into space.  (Blue Origin, the company led by Amazon.com founder Jeff Bezos, landed its New Shepard booster successfully the previous month but that occurred during a suborbital test.)  What is even more spectacular?  Returning the rocket back to Earth on a drone ship in the middle of the ocean!  On April 8, 2016, SpaceX lifted off delivering supplies tot eh International Space Station.  Before reaching the Space Station, the first stage of the rocket successfully landed on a drone ship that was stationed off the Florida coast. [Watch it] (https://www.youtube.com/watch?v=7pUAydjne5M)
+Most impressively, on April 8, 2016, SpaceX lifted off delivering supplies to the International Space Station.  Before reaching the Space Station, the first stage of the rocket successfully landed on a drone ship that was stationed off the Florida coast. [Watch it] (https://www.youtube.com/watch?v=7pUAydjne5M)
 
-It is my interest and excitement on the advances that SpaceX has demonstrated that led me to the analysis presented n this document.
+It is my interest and excitement on the advances that SpaceX has demonstrated that led me to the analysis presented in this document.
 
 ###Conditions Check
 
@@ -76,6 +74,7 @@ Conditions of the Chi-Square Independence Test.
 
 1. **Independence**: Sampled observations must be independent:
    + Random sample/assignment - This data is random based on the description of the data collection methods in the GSS FAQ.  While there are potential source of bias in GSS, it is generally accepted that GSS saisfies this random sample requirement.  *"..the GSS tries to follow the highest survey standards in design, sampling, interviewing, processing, and documentation. Items are designed by leading specialists in their field and then pretested, full-probability sampling is used, a high response rate is obtained, and many data quality checks from validation to verification are employed."*.  [Link](http://www.ssric.org/trd/other/ssda/gssdesc) 
+   + While the GSS data is aummed random, the potential sources of bias are:
        + “Face-to-face interviews” performed at the University of Chicago introduce a “convenience bias” as people close to Chicago may be more likely to participate. 
        + The study may suffer from “voluntary response bias” since people with strong responses participate.  The voluntary participants may not be representative of the US population. 
    + If sampling without replacement, n<10% of popultion - The number of cases is less than ten percent of the population of the US ([323,987,000](http://www.worldometers.info/world-population/us-population/)).
@@ -109,7 +108,7 @@ varsOfInterest <- c("year", "attend", "natspac")
 modData <- select(gss, one_of(varsOfInterest))#57061 records
 summary(modData)
 ```
-Arbitrarily on my part, I am going to limit the analysis data to date no older than the year 2000.  Aft the code runs, the summary is re-displayed to ensure the operation was successful.
+I am going to limit the analysis to surveys no older that the year 2000.  It is the author's belief that public opinion changes over long periods of time.  I am interested in what people think today, not decades ago.  After the code runs, the summary is re-displayed to ensure the operation was successful.
 ```{r filterYear}
 modData <- modData %>% filter(year>1999)
 summary(modData)
@@ -145,23 +144,35 @@ table(modData)
 That looks better.
 
 We collected, filtered and clean our working data set.  Let us now explore it a bit more to make sure we are ready for analysis.
-```{r dataPlots}
+```{r dataPlots1}
 ggplot(modData, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.text.x=element_blank(), axis.ticks=element_blank()) +
      ggtitle("Frequency of Attendance\nat Religious Services")
+```
+
+Appears there is some consistency across the *attend* factors with a bump in the count of people that go to religious services each week.
+```{r dataPlots2}
 ggplot(modData, aes(x=natspac, fill=factor(natspac))) + geom_bar() + theme(axis.text.x=element_blank(), axis.ticks=element_blank()) +
      ggtitle("Public Support for\nSpace Exploration")
 ```
 
+Most survey participants appear to think spending on space exploration is about right with the balance favoring the option that we are spending too much.
+
 To simplify - and make the analysis more meaningful, let's collapse the attend factors into just a couple of factors.  We'll create two *attend* factors from the many we have.  The division point with be 1 religious service/month.  If less than once a month, the survey count will be aggregated into the new *Rarely* factor.  If more frequent, then the survey counts will be aggregated into the *Frequently* factor.
 
-```{r reduceFactorCnt}
+```{r reduceFactorCnt1}
 modData$attend <- revalue(modData$attend, c("Lt Once A Year"="Rarely", "Once A Year"="Rarely", "Sevrl Times A Yr"="Rarely"))
 modData$attend <- revalue(modData$attend, c("Once A Month"="Frequently", "2-3X A Month"="Frequently", "Nrly Every Week"="Frequently", 
      "Every Week"="Frequently", "More Thn Once Wk"="Frequently"))
 ggplot(modData, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.text.x=element_blank(), axis.ticks=element_blank()) +
      ggtitle("Frequency of Attendance\nat Religious Services")
+```
+
+We now know that more people attend religious services than thos that chose not to.
+```{r reduceFactorCnt2}
 plot(modData$attend, modData$natspac, col=brewer.pal(3, "Accent"), xlab="Religious Services Frequency", ylab="Support of Space Exploration")
 ```
+
+From this plot it appears  there is a consistent concensus on space exploration spending regardless of religious service attendenace.  Let's find out if what appears to be independent really is independent!
 
 ## Part 4: Inference
 ###Hypothesis Tests
@@ -214,8 +225,6 @@ frq_much <- round(tmpTable[3,3] * overall_frq)
 frq_total <- frq_little + frq_right + frq_much
 ```
 
-The overall frequent attendance rate is `r tmpTable[2,4]/tmpTable[3,4]`.
-
 If in fact religious service attendance and support for space are independent (i.e. if in fact $H_{0}$ is true), how many of the persons supporting space exploration would we expect to frequently attend religious services? (Note:  The expected values are shown in <span style="color:blue">blue</span>.)
 
 | ---------- | Too Little | About Right | Too Much | Total |
@@ -240,7 +249,7 @@ Based on the calculations above, this data has a chi-square statistic of 199.35,
 
 ### Conclusion:
 
-By rejecting the null hypothesis $H_{0}$, test results provides strong evidence suggesting that the frequency of religious services and support for space exploration are dependent or have some association.  Recall that this is an alaysis of observational data so no causal connections can be made.
+By rejecting the null hypothesis $H_{0}$, test results provides strong evidence suggesting that the frequency of religious services and support for space exploration are dependent or have some association.  Recall that this is an analysis of observational data so no causal connections can be made.
 
 ##References
 
