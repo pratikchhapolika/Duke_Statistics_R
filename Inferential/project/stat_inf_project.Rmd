@@ -15,7 +15,7 @@ output:
 ## Part 1: Introduction & Data Source 
 The data used in this analysis is from the General Social Survey (GSS).  It is a sociological survey used to collect data on demographic characteristics and attitudes of residents of the United States. The survey is a representative sample of "English speaking persons 18 years of age or over, living in non-institutional arrangements within the United States". 
 
-This analysis is a retrospective observational study seeking to determine if there is a relationship between the frequency people participate in religious services - a measure of how religious they are - and their view on the government funding space exploration.  Because this is not an experiment, no causality inferences to the general population can be made. 
+This analysis is a retrospective observational study seeking to determine if there is a relationship between the frequency people participate in religious services - a measure of how religious they are - and their view on the government funding space exploration.
 
 The two variables evaluated are categorical variables.
 
@@ -67,19 +67,19 @@ Most impressively, on April 8, 2016, SpaceX lifted off delivering supplies to th
 It is my interest and excitement on the advances that SpaceX has demonstrated that led me to the analysis presented in this document.
 
 ###Conditions Check
+####Chi-Square Independence Test
+This data is composed of two categorical variables one of which has more than two levels.  The appropriate statistical test for data like this is the Chi-Square Independence Test. A chi-square test for independence is applied when you have two categorical variables from a single population. It is used to determine whether there is a significant association (not causal) between the two variables.  This is the only statistical test for the GSS Data that is appropriate for this analysis.
 
-This data is composed of two categorical variables one of which has more than two levels.  The appropriate statistical test for data like this is the Chi-Square Independence Test. 
-
-Conditions of the Chi-Square Independence Test.
+####Conditions of the Chi-Square Independence Test.
 
 1. **Independence**: Sampled observations must be independent:
-   + Random sample/assignment - This data is random based on the description of the data collection methods in the GSS FAQ.  While there are potential source of bias in GSS, it is generally accepted that GSS saisfies this random sample requirement.  *"..the GSS tries to follow the highest survey standards in design, sampling, interviewing, processing, and documentation. Items are designed by leading specialists in their field and then pretested, full-probability sampling is used, a high response rate is obtained, and many data quality checks from validation to verification are employed."*.  [Link](http://www.ssric.org/trd/other/ssda/gssdesc) 
-   + While the GSS data is aummed random, the potential sources of bias are:
+   + Random sample/assignment - This data is random based on the description of the data collection methods in the GSS FAQ.  While there are potential source of bias in GSS, it is generally accepted that GSS satisfies this random sample requirement.  *"..the GSS tries to follow the highest survey standards in design, sampling, interviewing, processing, and documentation. Items are designed by leading specialists in their field and then pretested, full-probability sampling is used, a high response rate is obtained, and many data quality checks from validation to verification are employed."*.  [Link](http://www.ssric.org/trd/other/ssda/gssdesc) 
+   + While the GSS data is assumed to be random, the potential sources of bias are:
        + “Face-to-face interviews” performed at the University of Chicago introduce a “convenience bias” as people close to Chicago may be more likely to participate. 
        + The study may suffer from “voluntary response bias” since people with strong responses participate.  The voluntary participants may not be representative of the US population. 
-   + If sampling without replacement, n<10% of popultion - The number of cases is less than ten percent of the population of the US ([323,987,000](http://www.worldometers.info/world-population/us-population/)).
-   + Each case only contributes to one cell in the table (the data is not paired).  There is no evidence that suggestes a violation of this rule.
-2. **Sample size**: Each cell must have at least 5 expected cases - A table below demosntrates that each cell has many more than 5 cases.
+   + If sampling without replacement, n<10% of population - The number of cases is less than ten percent of the population of the US ([323,987,000](http://www.worldometers.info/world-population/us-population/)).
+   + Each case only contributes to one cell in the table (the data is not paired).  There is no evidence that suggests a violation of this rule.
+2. **Sample size**: Each cell must have at least 5 expected cases - A table below demonstrates that each cell has many more than 5 cases.
 
 ## Part 3: Exploratory data analysis
 Before proceeding, let us first look and understand the data. We'll then clean and filter it before beginning an analysis.
@@ -119,7 +119,7 @@ modData$year <- NULL
 countNAs <- apply(modData, 2, function(x) sum(is.na(x)))
 countNAs
 ```
-There are quite of few records with missing data.  Let us clean that up so we can clean and complete records.
+There are quite of few records with missing data.  Let us clean that up so we have complete records.
 ```{r removeNA}
 modData <- modData %>% filter(attend != "NA", natspac != "NA")# records
 dim(modData)
@@ -129,8 +129,7 @@ Now that the data has been prepared, we see that we are left with 6,330 records.
 
 ####Factor Management
 
-One more step before we begin the analysis phase of this project.  Let us inspect the factors in the working data set.
-
+Let us inspect the factors in the working data set.
 ```{r factorMgmt}
 table(modData)
 ```
@@ -167,12 +166,12 @@ ggplot(modData, aes(x=attend, fill=factor(attend))) + geom_bar() + theme(axis.te
      ggtitle("Frequency of Attendance\nat Religious Services")
 ```
 
-We now know that more people attend religious services than thos that chose not to.
+We now know that more people attend religious services compared to those that attend less frequently.
 ```{r reduceFactorCnt2}
 plot(modData$attend, modData$natspac, col=brewer.pal(3, "Accent"), xlab="Religious Services Frequency", ylab="Support of Space Exploration")
 ```
 
-From this plot it appears  there is a consistent concensus on space exploration spending regardless of religious service attendenace.  Let's find out if what appears to be independent really is independent!
+From this plot it appears  there is a consistent consensus on space exploration spending regardless of religious service attendance.  Let's find out if what appears to be independent really is independent!
 
 ## Part 4: Inference
 ###Hypothesis Tests
@@ -206,7 +205,7 @@ tmpTable <- addmargins(table(modData))
 tmpTable
 ```
 
-We now prepare a table that provides the observed and 
+We now prepare a table that provides the observed and expected counts:
 ```{r tableCalc}
 #Overall frequent attendance rate in the sample
 overall_frq <- tmpTable[2,4]/tmpTable[3,4]
@@ -225,7 +224,7 @@ frq_much <- round(tmpTable[3,3] * overall_frq)
 frq_total <- frq_little + frq_right + frq_much
 ```
 
-If in fact religious service attendance and support for space are independent (i.e. if in fact $H_{0}$ is true), how many of the persons supporting space exploration would we expect to frequently attend religious services? (Note:  The expected values are shown in <span style="color:blue">blue</span>.)
+If in fact religious service attendance and support for space are independent (i.e. if $H_{0}$ is true), how many of the persons supporting space exploration would we expect to frequently attend religious services? (Note:  The expected values are shown in <span style="color:blue">blue</span>.)
 
 | ---------- | Too Little | About Right | Too Much | Total |
 | ---------- | ---------- | ----------- | -------- | ----- |
@@ -233,7 +232,7 @@ If in fact religious service attendance and support for space are independent (i
 | Frequently | 453 (<span style="color:blue">528</span>) | 1710 (<span style="color:blue">1711</span>) | 1547 (<span style="color:blue">1471</span>) | 3710 |
 | Total | 901 | 2919 | 2510 | 6330 |
 
-We could calculate this by hand using the equation provided previously but that would be laboroious compared to the simplicity provided by R and the chisq.test used below.
+We could calculate this by hand using the equation provided previously but that would be laborious compared to the simplicity provided by R and the chisq.test used below.
 
 ```{r chi_sqTest}
 rarely <- c(1591, 4358, 4671)
@@ -249,7 +248,12 @@ Based on the calculations above, this data has a chi-square statistic of 199.35,
 
 ### Conclusion:
 
-By rejecting the null hypothesis $H_{0}$, test results provides strong evidence suggesting that the frequency of religious services and support for space exploration are dependent or have some association.  Recall that this is an analysis of observational data so no causal connections can be made.
+By rejecting the null hypothesis $H_{0}$, test results provides strong evidence suggesting that the frequency of religious services and support for space exploration are dependent or have some association. Because this analysis is based on observational survey data and is not an experiment, no *causality* inferences to the general population can be made. 
+
+Lastly, the statistical approach and the selection of the Chi-Square Test for Independence is appropriate because the sampling method was simple random sampling, the variables under study were categorical and the expected frequency count was at least 5 in each cell of the contingency table.
+
+####Next Steps:
+It would be interesting to take this analysis further and determine if rejecting the null hypothesis $H_{0}$ would be supported using older survey data.  This would provide an indication if religious service attendance and support for space exploration has changed by decades and generations.
 
 ##References
 
