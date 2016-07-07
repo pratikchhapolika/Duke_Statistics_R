@@ -43,7 +43,22 @@ The Internet Movie Database (abbreviated IMDb) is an online database of informat
 The site enables registered users to submit new material and request edits to existing entries. Although all data is checked before going live, the **system has been open to abuse and occasional errors are acknowledged**. Users are also invited to rate any film on a scale of 1 to 10, and the totals are converted into a weighted mean-rating that is displayed beside each title, with online filters employed to deter ballot-stuffing. The site also features message boards which stimulate regular debates among authenticated users.
 
 ###Scope of Inference
+In *Introduction to the Data* above, a few pharases have been **highlighted**.  These phrases provide key information about the generalizability of the data.  This information suggests the dataset should be considered the result of an observational retrospective study that uses a random sampling design to select a representative sample from U.S. movies. When random sampling has been employed in data collection, the results should be generalizable to the target population. Therefore, the results of the analysis should be generailizable to all the movies relased between 1970 - 2014.
 
+Note that observational studies show associations. In a data analysis, association does not imply causation. Causation can only be inferred from a randomized experiment.  This analysis does not meet the requirements of an experiment.  
+
+Sources of Bias
+
+- “Face-to-face interviews” performed at the University of Chicago introduce a “convenience bias” as people close to Chicago may be more likely to participate.
+- The study may suffer from “voluntary response bias” since people with strong responses participate. The voluntary participants may not be representative of the US population.
+
+Non-Response Bias:  Simple random sampling means that each case in the population has an equal chance of being included and there is no implied connection between the cases in the sample. However, even when people are picked at random, caution
+must be exercised if the non-response is high. If only 30% of the people randomly sampled for a survey respond, then it is unclear whether the results are representative of the entire population. This non-response bias can skew results.
+
+Voluntary Response Bias:  Another common downfall is a convenience sample, where individuals who are easily
+accessible are more likely to be included in the sample. For instance, if a political survey
+is done by stopping people walking in the Bronx, this will not represent all of New York
+City. It is often difficult to discern what sub-population a convenience sample represents.
 
 * * *
 
