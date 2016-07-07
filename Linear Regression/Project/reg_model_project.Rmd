@@ -9,62 +9,81 @@ output:
 
 ## Setup
 
-### Load packages
+### Load packages and data
 
 ```{r load-packages, message = FALSE}
 library(ggplot2)
 library(dplyr)
 library(statsr)
-```
-
 ### Load data
-
-Make sure your data and R Markdown files are in the same directory. When loaded
-your data file will be called `movies`. Delete this note when before you submit 
-your work. 
-
-```{r load-data}
-#load("movies.Rdata")
+load("movies.Rdata")
 ```
-
-
 
 * * *
 
 ## Part 1: Data
+
+The goal of this section is: 
+*Describe how the observations in the sample are collected and the implications of this data collection method on the scope of inference (generalizability / causality).*
+
+###Introduction to the Data
+
+The dataset "movies" is comprised of 651 **randomly sampled movies** produced and released before 2016. The movies are from American Studios.  (We know this because the MPAA Ratings in teh data applies only to American movies.)  This dataset includes information from both Rotten Tomatoes and IMDb.
+
+####About Rotten Tomatoes 
+(see https://www.rottentomatoes.com/about/):
+
+Rotten Tomatoes and the Tomatometer™ rating is the most trusted measurement of quality entertainment. As the leading online aggregator of movie and TV show **reviews from professional critics**, Rotten Tomatoes offers the most comprehensive guide to what's fresh. The world famous Tomatometer™ rating represents the percentage of positive professional reviews for films and TV shows and is used by millions every day, to help with their entertainment viewing decisions. Rotten Tomatoes designates the best reviewed movies and TV shows as Certified Fresh. That accolade is awarded with Tomatometer ratings of 75% and higher and a required minimum number of reviews. 
+
+####About IMDB 
+(see https://en.wikipedia.org/wiki/IMDb)
+
+The Internet Movie Database (abbreviated IMDb) is an online database of information related to films, television programs and video games, including cast, production crew, fictional characters, biographies, plot summaries, trivia and reviews. As of June 2016, IMDb has approximately 3.7 million titles (including episodes) and 7 million personalities in its database.
+
+The site enables registered users to submit new material and request edits to existing entries. Although all data is checked before going live, the **system has been open to abuse and occasional errors are acknowledged**. Users are also invited to rate any film on a scale of 1 to 10, and the totals are converted into a weighted mean-rating that is displayed beside each title, with online filters employed to deter ballot-stuffing. The site also features message boards which stimulate regular debates among authenticated users.
+
+###Scope of Inference
 
 
 * * *
 
 ## Part 2: Research question
 
+The project objective for this section:
+
+*Develop a research question that you want to answer using these data and a multiple linear regression model. You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.  Include a brief discussion why this question is of interest to you and/or your audience.*
 
 
 * * *
 
 ## Part 3: Exploratory data analysis
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button above. Make sure that your code is visible in the project you submit. 
-Delete this note when before you submit your work.
+The project objective for this section:
+
+*Perform exploratory data analysis (EDA) that addresses the research question. The EDA should contain numerical summaries and visualizations. Each R output and plot should be accompanied by a brief interpretation.*
+
 
 * * *
 
 ## Part 4: Modeling
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button above. Make sure that your code is visible in the project you submit. 
-Delete this note when before you submit your work.
+The project objective for this section:
+
+*Develop a multiple linear regression model to predict a numerical variable in the dataset. The response variable and the explanatory variables can be existing variables in the dataset, or new variables you create based on existing variables.*
 
 * * *
 
 ## Part 5: Prediction
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button above. Make sure that your code is visible in the project you submit. 
-Delete this note when before you submit your work.
+The project objective for this section:
+
+*Pick a movie from 2016 (a new movie that is not in the sample) and do a prediction for this movie using your the model you developed and the `predict` function in R. Also quantify the uncertainty around this prediction using an appropriate interval.*
+
 
 * * *
 
 ## Part 6: Conclusion
 
+The project objective for this section:
+
+*A brief summary of your findings from the previous sections without repeating your statements from earlier as well as a discussion of what you have learned about the data and your research question. You should also discuss any shortcomings of your current study (either due to data collection or methodology) and include ideas for possible future research.*

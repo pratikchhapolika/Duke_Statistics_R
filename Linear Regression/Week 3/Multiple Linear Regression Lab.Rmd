@@ -120,14 +120,14 @@ variable         | description
 
 1. Is this an observational study or an experiment?
 <ol>
-<li> Observational study </li>
+<li> **Observational study** </li>
 <li> Experiment </li>
 </ol>
 
 2. The original research question posed in the paper is whether beauty leads directly to the differences in course evaluations.  Given the study design, should the question be rephrased? If so, how? 
 <ol>
 <li> No, the question is worded accurately. </li>
-<li> Yes, revise wording to "Is there an association between beauty and course evaluations?" </li>
+<li> **Yes, revise wording to "Is there an association between beauty and course evaluations?"** </li>
 <li> Yes, revise wording to "Does beauty score increase the professor's course evaluations?"  </li>
 <li> Yes, revise wording to "Does beauty score decrease the professor's course evaluations?" </li>
 </ol>
@@ -139,11 +139,12 @@ variable         | description
 <li> The median of the distribution is 4.3. </li>
 <li> 25\% of the students gave their professors a score of over 4.6. </li> 
 <li> 11 of students gave a professor a score below 3. </li> 
-<li> The left skewness of the data suggests that the students are less likely to rate the professors highly. </li>
+<li> **The left skewness of the data suggests that the students are less likely to rate the professors highly.** </li>
 </ol>
 ```{r score-dist}
 # type your code for Question 3 here, and Knit
-
+hist(evals$score)
+summary(evals$score)
 ```
 
 <div id="exercise">
@@ -153,7 +154,7 @@ or mosaic plot).
 </div>
 ```{r two-vars-eda}
 # type your code for the Exercise here, and Knit
-
+plot(evals$age, evals$bty_avg)#age does not seem to provide any association
 ```
 
 ## Simple linear regression
@@ -163,8 +164,7 @@ are evaluated more favorably. Let's create a scatterplot to see if this appears
 to be the case:
 
 ```{r scatter-score-bty_avg}
-ggplot(data = evals, aes(x = bty_avg, y = score)) +
-  geom_point()
+ggplot(data = evals, aes(x = bty_avg, y = score)) + geom_point()
 ```
 
 Before we draw conclusions about the trend, compare the number of observations 
@@ -178,7 +178,7 @@ about the initial scatterplot?
 </div>
 ```{r jitter}
 # type your code for the Exercise here, and Knit
-
+ggplot(data = evals, aes(x = bty_avg, y = score)) + geom_jitter()
 ```
 
 Let's see if the apparent trend in the plot is something more than 
@@ -187,18 +187,15 @@ score by average beauty rating and add the line to your plot using the following
 you do not remember how to do this, refer to the previous lab.
 
 ```{r scatter-score-bty_avg-line}
-ggplot(data = evals, aes(x = bty_avg, y = score)) +
-  geom_jitter() +
-  geom_smooth(method = "lm")
+m_bty <- lm(score ~ bty_avg, data = evals)
+ggplot(data = evals, aes(x = bty_avg, y = score)) + geom_jitter() + geom_smooth(method = "lm", se = TRUE)
 ```
 
 The blue line is the model. The shaded gray area around the line tells us about the 
 variability we might expect in our predictions. To turn that off, use `se = FALSE`.
 
 ```{r scatter-score-bty_avg-line-no-se}
-ggplot(data = evals, aes(x = bty_avg, y = score)) +
-  geom_jitter() +
-  geom_smooth(method = "lm", se = FALSE)
+ggplot(data = evals, aes(x = bty_avg, y = score)) + geom_jitter() + geom_smooth(method = "lm", se = FALSE)
 ```
 
 <div id="exercise">
@@ -207,25 +204,28 @@ interpret the slope.
 </div>
 ```{r summary-model}
 # type your code for the Exercise here, and Knit
-
+summary(m_bty)
+#score = 3.88 + 0.06664*bty_avg
 ```
 
 4. Average beauty score is a statistically significant predictor of evaluation score. 
 <ol> 
 <li> True </li>
-<li> False </li>
+<li> **False** </li>
 </ol>
+Got this wrong the first time.
 
 5. Use residual plots to evaluate whether the conditions of least squares regression are reasonable.  Which of the following statements is an incorrect analysis of the residual plots and conditions? 
 <ol>
 <li> Linear association: The residuals plot shows a random scatter. </li>
 <li> Constant variance of residuals: No fan shape in residuals plot. </li>
-<li> Nearly normal residuals: Residuals are right skewed, but the sample size is large, so this may not be an important violation of conditions. </li>
+<li> **Nearly normal residuals: Residuals are right skewed, but the sample size is large, so this may not be an important violation of conditions.** </li>
 <li> Independent observations: Classes sampled randomly, no order effect. </li>
 </ol>
 ```{r diag-score-bty_avg}
 # type your code for the Question 5 here, and Knit
-
+ggplot(data = m_bty, aes(x = .fitted, y = .resid)) +  geom_point() + geom_hline(yintercept = 0, linetype = "dashed") +
+  xlab("Fitted values") + ylab("Residuals")
 ```
 
 ## Multiple linear regression
@@ -237,10 +237,8 @@ take a look at the relationship between one of these scores and the average
 beauty score.
 
 ```{r bty-rel}
-ggplot(data = evals, aes(x = bty_f1lower, y = bty_avg)) +
-  geom_jitter()
-evals %>% 
-  summarise(cor(bty_avg, bty_f1lower))
+ggplot(data = evals, aes(x = bty_f1lower, y = bty_avg)) + geom_jitter()
+evals %>% summarise(cor(bty_avg, bty_f1lower))
 ```
 
 As expected the relationship is quite strong - after all, the average score is 
@@ -253,9 +251,9 @@ ggpairs(evals, columns = 13:19)
 ```
 
 These variables are collinear (correlated), and adding more than one of these 
-variables to the model would not add much value to the model. In this 
+variables to the model would not add much value to the model. *In this 
 application and with these highly-correlated predictors, it is reasonable to use
-the average beauty score as the single representative of these variables.
+the average beauty score as the single representative of these variables*.
 
 In order to see if beauty is still a significant predictor of professor score 
 after we've accounted for the gender of the professor, we can add the gender 
@@ -268,13 +266,20 @@ summary(m_bty_gen)
 
 6. P-values and parameter estimates should only be trusted if the conditions for the regression are reasonable. Using diagnostic plots, we can conclude that the conditions for this model are reasonable. 
 <ol>
-<li> True </li>
+<li> **True** </li>
 <li> False </li>
 </ol>
+Got this wrong the first time
 </div>
 ```{r diag-mlr-model}
 # type your code for the Exercise here, and Knit
-
+#Linearity:
+ggplot(data = m_bty_gen, aes(x = .fitted, y = .resid)) +  geom_point() + geom_hline(yintercept = 0, linetype = "dashed") +
+  xlab("Fitted values") + ylab("Residuals")
+#Nearly Normal:
+ggplot(data = m_bty_gen, aes(x = .resid)) + geom_histogram(binwidth = 10) + xlab("Residuals")
+#Normal Probability
+ggplot(data = m_bty_gen, aes(sample = .resid)) + stat_qq()
 ```
 
 <div id="exercise">
@@ -284,7 +289,7 @@ model changed the parameter estimate for `bty_avg`?
 </div>
 ```{r summary-mlr-model}
 # type your code for the Exercise here, and Knit
-
+summary(m_bty_gen)
 ```
 
 Note that the estimate for `gender` is now called `gendermale`. You'll see this 
@@ -305,13 +310,13 @@ the intercept and slope form familiar from simple regression.
 
 7. For two professors (one male and one female) who received the same beauty rating, the male professor is predicted to have the higher course evaluation score than the female.
 <ol>
-<li> True </li>
+<li> **True** </li>
 <li> False </li>
 </ol>
 
 The decision to call the indicator variable `gendermale` instead of`genderfemale`
-has no deeper meaning. R simply codes the category that comes first 
-alphabetically as a $0$. (You can change the reference level of a categorical 
+has no deeper meaning. **R simply codes the category that comes first 
+alphabetically as a $0$.** (You can change the reference level of a categorical 
 variable, which is the level that is coded as a 0, using the`relevel` function. 
 Use `?relevel` to learn more.)
 
@@ -323,14 +328,15 @@ tenure track, tenured.
 </div>
 ```{r new-mlr-model}
 # type your code for the Exercise here, and Knit
-
+m_bty_rank <- lm(score ~ bty_avg + rank, data = evals)
+summary(m_bty_rank)
 ```
 
 8. Which of the following is the correct order of the three levels of rank if we were to order them from lowest predicted course evaluation score to highest predicted course evaluation score? 
 <ol>
 <li> Teaching, Tenure Track, Tenured </li>
 <li> Tenure track, Tenured </li>
-<li> Tenure Track, Tenured, Teaching </li>
+<li> **Tenure Track, Tenured, Teaching** </li>
 <li> Teaching, Tenured, Tenure Track </li>
 </ol>
 
@@ -406,10 +412,12 @@ output in your response.
 9. Which of the following is the correct intrepetation of the coefficient associated with the ethnicity variable. <br> Non-minority professors are expected on average to score ... 
 <ol>
 <li> 0.19 points lower than minority professors, all else held constant. </li>
-<li> 0.19 points higher than minority professors, all else held constant. </li> 
+<li> **0.19 points higher than minority professors, all else held constant.** </li> 
 <li> 0.02 points lower than minority professors, all else held constant. </li>
 <li> 0.02 points higher than minority professors, all else held constant. </li>
 </ol>
+
+There might be atype above.  enthinicty has a coefficient of 0.1234929
 
 <div id="exercise">
 **Exercise:** Drop the variable with the highest p-value and re-fit the model. 
@@ -421,7 +429,10 @@ the other explanatory variables?
 </div>
 ```{r p-val-select}
 # type your code for the Exercise here, and Knit
-
+m_full_1 <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+             + cls_students + cls_level + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(m_full_1)#Adjusted R-squared:  0.1634
 ```
 
 Now we try a different model selection method: adjusted $R^2$. Create a new model, 
@@ -431,15 +442,16 @@ adjusted $R^2$ of this new model and compare it to the adjusted $R^2$ of the ful
 ```{r eval=FALSE}
 m1 <- lm(score ~ ethnicity + gender + language + age + cls_perc_eval 
              + cls_students + cls_level + cls_profs + cls_credits + bty_avg, data = evals)
-summary(m1)$adj.r.squared
+summary(m1)$adj.r.squared#0.1417823
 ```
 
 Then, try dropping the next variable from the full model (`ethnicity`):
 
 ```{r eval=FALSE}
-m2 = lm(score ~ rank + gender + language + age + cls_perc_eval + 
-    cls_students + cls_level + cls_profs + cls_credits + bty_avg, data = evals)
-summary(m2)$adj.r.squared
+m2_ethnicity = lm(score ~ rank + gender + language + age + cls_perc_eval 
+             + cls_students + cls_level + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(m2_ethnicity)$adj.r.squared#0.1602303
 ```
 
 <div id="exercise">
@@ -449,13 +461,31 @@ the highest improvement in the adjusted $R^2$.
 </div>
 ```{r adj-rsq-select}
 # type your code for the Exercise here, and Knit
+m_bty_avg <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+             + cls_students + cls_level + cls_profs + cls_credits  
+             + pic_outfit + pic_color, data = evals)
+summary(m_bty_avg)$adj.r.squared#0.1538113
 
+m_cls_profs <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+             + cls_students + cls_level +  cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(m_cls_profs)$adj.r.squared#0.1634262
+
+m_cls_students <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+             +  cls_level + cls_profs + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(m_cls_students)$adj.r.squared#0.1608651
+
+m_rank <- lm(score ~ ethnicity + gender + language + age + cls_perc_eval 
+             + cls_students + cls_level + cls_profs + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(m_rank)$adj.r.squared#0.1587245
 ```
 
 10. Elimination of which variable from the full model yielded the highest adjusted R-squared? 
 <ol>
 <li> `bty_avg` </li>
-<li> `cls_profs` </li> 
+<li> `cls_profs`  THIS ONE</li> 
 <li> `cls_students` </li>
 <li> `rank` </li>
 </ol>
