@@ -53,12 +53,9 @@ Sources of Bias
 - The study may suffer from “voluntary response bias” since people with strong responses participate. The voluntary participants may not be representative of the US population.
 
 Non-Response Bias:  Simple random sampling means that each case in the population has an equal chance of being included and there is no implied connection between the cases in the sample. However, even when people are picked at random, caution
-must be exercised if the non-response is high. If only 30% of the people randomly sampled for a survey respond, then it is unclear whether the results are representative of the entire population. This non-response bias can skew results.
+must be exercised if the non-response is high. If only 30% of the people randomly sampled for a survey respond, then it is uncertain whether the results are representative of the entire population. This non-response bias can skew results.
 
-Voluntary Response Bias:  Another common downfall is a convenience sample, where individuals who are easily
-accessible are more likely to be included in the sample. For instance, if a political survey
-is done by stopping people walking in the Bronx, this will not represent all of New York
-City. It is often difficult to discern what sub-population a convenience sample represents.
+Voluntary Response Bias:  Voluntary response bias occurs when sample members are self-selected volunteers, as in voluntary samples.  Since volunteers are involved with the collection of movie data, this may be a potential souece of bias that could affect results.
 
 * * *
 
@@ -68,6 +65,11 @@ The project objective for this section:
 
 *Develop a research question that you want to answer using these data and a multiple linear regression model. You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.  Include a brief discussion why this question is of interest to you and/or your audience.*
 
+I have a teenage daughter who sees movies with her friends every week.  Occasionally I take the gaggle of girls to the movires and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrtible - imn my opinion.  I am often amazed how frequently my perceptions differr form youg teenagers.  (I know I should not be surprised.)
+
+Research Question:  What does it take to make a movie popular?  
+
+I really curious.  Do the variables that contribute to movie popularity more closely match my views or the perceptions of a teenage?
 
 * * *
 
@@ -77,7 +79,86 @@ The project objective for this section:
 
 *Perform exploratory data analysis (EDA) that addresses the research question. The EDA should contain numerical summaries and visualizations. Each R output and plot should be accompanied by a brief interpretation.*
 
+### Data details
 
+Before any data analysis, understnading the data is critical.  Lets first look at the 32 variables available to us:
+
+The data frame has 651 redords and 32 attributes:
+
+- `title`: Title of movie
+- `title_type`: Type of movie (Documentary, Feature Film, TV Movie)
+- `genre`: Genre of movie (Action & Adventure, Comedy, Documentary, Drama, Horror, Mystery & Suspense, Other)
+- `runtime`: Runtime of movie (in minutes)
+- `mpaa_rating`: MPAA rating of the movie (G, PG, PG-13, R, Unrated)
+- `studio`: Studio that produced the movie
+- `thtr_rel_year`: Year the movie is released
+- `thtr_rel_month`: Month the movie is released
+- `thtr_rel_day`: Day of month the movie is released
+- `dvd_rel_year`: Year the DVD is released
+- `dvd_rel_month`: Month the DVD is released
+- `dvd_rel_day`: Day od month the DVD is released
+- `imdb_rating`: The IMDB rating
+- `imdb_num_votes`: Number of votes on IMDB
+- `critics_rating`: Categorical variable for critics rating on Rotten Tomatoes (Certified Fresh, Fresh, Rotten)
+- `critics_score`: Critics score on Rotten Tomatoes
+- `audience_rating`: Categorical variable for audience rating on Rotten Tomatoes (Spilled, Upright)
+- `audience_score`: Audience score on Rotten Tomatoes
+- `best_pic_nom`: Whether or not the movie was nominated for a best picture Oscar (no, yes)
+- `best_pic_win`: Whether or not the movie won a best picture Oscar (no, yes)
+- `best_actor_win`: Whether or not one of the main actors in the movie ever won an Oscar (no, yes) -- note that this is not necessarily whether the actor won an Oscar for their role in the given movie
+- `best_actress win`: Whether or not one of the main actresses in the movie ever won an Oscar (no, yes) -- not that this is not necessarily whether the actresses won an Oscar for their role in the given movie
+- `best_dir_win`: Whether or not the director of the movie ever won an Oscar (no, yes) -- not that this is not necessarily whether the director won an Oscar for the given movie
+- `top200_box`: Whether or not the movie is in the Top 200 Box Office list on BoxOfficeMojo (no, yes)
+- `director`: Director of the movie
+- `actor1-actor5`: List of first 5 main actors in the movie (abridged cast), this information was used to determine whether the movie casts an actor or actress who won a best actor or actress Oscar
+- `imdb_url`: Link to IMDB page for the movie
+- `imdb_id`: IMDB ID of the movie
+- `rt_url`: Link to Rotten Tomatoes page for the movie
+
+```{r}
+str(movies)
+```
+The `audience_score` is the response variable for my analysis.  It is the variable we will solve for in our analysis.  Not all of the reamianing variables are interesting to answer my question.  I will also intentionally remove a few variables.  For example, I perfer to get a solution without regard to when the movie was produced.  Certainly older movies may be percieved differently by younger people compared to a mature audience but for the purposes of this project, I am removing the date-related variables.  
+```{r selectVariables}
+movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -top200_box, -(actor1:rt_url)))
+```
+Because my question surronds movie popularity with an interest in undetsnading if the result more closely mirrow my perception or my daughter's perception, I will also filter the records removing Documentaries - my daughter is not going to watch one of those!  Also, I am specifically interested in movies in thheaters - not TV movies.  Lastly, I want only complete records.
+```{r}
+movies_filtered <- filter(movies_filtered, title_type == "Feature Film")
+movies_filtered <- na.omit(movies_filtered)
+```
+Let's see what our reduced data looks like:
+```{r}
+dim(movies_filtered)
+str(movies_filtered)
+```
+
+
+```{r}
+ggplot(movies_filtered, aes(x = audience_score)) + geom_histogram() + xlab("Audience Score") + ylab("Count") + ggtitle("Histogram of Audience Score")
+summary(movies_filtered$audience_score)
+```
+The histogram does appear a bit left skewed but I submit this is understnabale.  I submit that popular movies typcally get rated highly by a broad audience where a less popualr movies will always have a measureable following.
+
+```{r}
+ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
+movies_reg %>% group_by(title_type) %>% summarise(median_score = median(audience_score), iqr_score = IQR(audience_score))
+```
+
+```{r evalDirectors}
+by_directors <- movies_filtered %>% group_by(director) %>% summarize(n()) 
+colnames(by_directors) <- c("Director_Name", "Count_Movies")
+by_directors <- by_directors[order(-by_directors$Count_Movies),]
+range(by_directors$Count_Movies)
+by_dir_cnt <- by_directors %>% group_by(Count_Movies) %>% summarize(n())
+colnames(by_dir_cnt) <- c("Num_Movies", "Num_Directors")
+ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) + 
+     geom_bar(stat = "identity", fill="lightgreen") + 
+     geom_text(aes(label=Num_Directors), vjust=-.5) +
+     ggtitle("How Many Movies Did Directors Produce?") +
+     labs(x="No. of Movies Produced", y="No. of Directors") +
+```
+     
 * * *
 
 ## Part 4: Modeling
