@@ -15,6 +15,7 @@ output:
 library(ggplot2)
 library(dplyr)
 library(statsr)
+library(knitr)
 ### Load data
 load("movies.Rdata")
 ```
@@ -142,8 +143,24 @@ The histogram does appear a bit left skewed but I submit this is understnabale. 
 
 ```{r}
 ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
-movies_reg %>% group_by(title_type) %>% summarise(median_score = median(audience_score), iqr_score = IQR(audience_score))
+movies_filtered %>% group_by(title_type) %>% summarise(median_score = median(audience_score), iqr_score = IQR(audience_score))
 ```
+
+```{r uniqueValues}
+unique1 <- lapply(movies_filtered, unique)
+unique2 <- sapply(unique1, length)
+unique2 <- as.data.frame(unique2)
+colnames(unique2) <- "Count_Distinct"
+unique3<-cbind(Variables=rownames(unique2), unique2)
+rownames(unique3) <- NULL
+unique4 <- unique3 %>% mutate(Percent_Unique = 1-Count_Distinct/nrow(movies_filtered))
+unique4$Percent_Unique <- percent(unique4$Percent_Unique)
+kable(unique4)
+ ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
+```
+
+http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
+
 
 ```{r evalDirectors}
 by_directors <- movies_filtered %>% group_by(director) %>% summarize(n()) 
@@ -156,7 +173,7 @@ ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) +
      geom_bar(stat = "identity", fill="lightgreen") + 
      geom_text(aes(label=Num_Directors), vjust=-.5) +
      ggtitle("How Many Movies Did Directors Produce?") +
-     labs(x="No. of Movies Produced", y="No. of Directors") +
+     labs(x="No. of Movies Produced", y="No. of Directors")
 ```
      
 * * *
