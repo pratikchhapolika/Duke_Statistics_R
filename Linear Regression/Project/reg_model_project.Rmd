@@ -16,6 +16,8 @@ library(ggplot2)
 library(dplyr)
 library(statsr)
 library(knitr)
+library(scales)
+library(formattable)
 ### Load data
 load("movies.Rdata")
 ```
@@ -155,8 +157,9 @@ unique3<-cbind(Variables=rownames(unique2), unique2)
 rownames(unique3) <- NULL
 unique4 <- unique3 %>% mutate(Percent_Unique = 1-Count_Distinct/nrow(movies_filtered))
 unique4$Percent_Unique <- percent(unique4$Percent_Unique)
+format_table(unique4,list(Variables=formatter("span", style="color:blue")), align = "c")
 kable(unique4)
- ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
+ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
 ```
 
 http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
