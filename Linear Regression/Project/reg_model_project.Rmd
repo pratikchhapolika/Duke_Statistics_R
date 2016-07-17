@@ -68,11 +68,11 @@ The project objective for this section:
 
 *Develop a research question that you want to answer using these data and a multiple linear regression model. You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.  Include a brief discussion why this question is of interest to you and/or your audience.*
 
-I have a teenage daughter who sees movies with her friends every week.  Occasionally I take the gaggle of girls to the movires and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrtible - imn my opinion.  I am often amazed how frequently my perceptions differr form youg teenagers.  (I know I should not be surprised.)
+I have a teenage daughter who sees movies with her friends every week.  Occasionally I take a gaggle of girls to the movies and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrtible - in my opinion.  I am often amazed how frequently my perceptions differ from young teenagers.  (I know I should not be surprised.)
 
 Research Question:  What does it take to make a movie popular?  
 
-I really curious.  Do the variables that contribute to movie popularity more closely match my views or the perceptions of a teenage?
+I am really curious.  Do the variables that contribute to movie popularity more closely match my views or the perceptions of a teenage?
 
 * * *
 
@@ -84,9 +84,9 @@ The project objective for this section:
 
 ### Data details
 
-Before any data analysis, understnading the data is critical.  Lets first look at the 32 variables available to us:
+Before any data analysis, understanding the data is critical.  Lets first look at the 32 variables available to us:
 
-The data frame has 651 redords and 32 attributes:
+The data frame has 651 records and 32 attributes:
 
 - `title`: Title of movie
 - `title_type`: Type of movie (Documentary, Feature Film, TV Movie)
@@ -121,14 +121,25 @@ The data frame has 651 redords and 32 attributes:
 ```{r}
 str(movies)
 ```
-The `audience_score` is the response variable for my analysis.  It is the variable we will solve for in our analysis.  Not all of the reamianing variables are interesting to answer my question.  I will also intentionally remove a few variables.  For example, I perfer to get a solution without regard to when the movie was produced.  Certainly older movies may be percieved differently by younger people compared to a mature audience but for the purposes of this project, I am removing the date-related variables.  
-```{r selectVariables}
-movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -top200_box, -(actor1:rt_url)))
+The `audience_score` is the response variable for my analysis.  It is the variable we will solve for in the analysis.  Why did I chose `audience_score` instead of the `imdb_rating`?  No specific reason.  It was a coin toss.  Both variables are highly correlated so picking one over the other is a random choice on my part.  Here is the correlation calculation:
+```{r correlation}
+cor(movies$imdb_rating, movies$audience_score)
 ```
-Because my question surronds movie popularity with an interest in undetsnading if the result more closely mirrow my perception or my daughter's perception, I will also filter the records removing Documentaries - my daughter is not going to watch one of those!  Also, I am specifically interested in movies in thheaters - not TV movies.  Lastly, I want only complete records.
+
+Not all of the remaining variables are interesting to answer the research question.  I will also intentionally remove a few variables.  These are variables that I have determined are not relevant to my research question.   I recognizie this is a subjective decision on my part.  I also remove the IMDB rating varibles because of their high corelation to the `audience_score`:
+```{r selectVariables}
+movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -top200_box, -imdb_rating, -imdb_num_votes, -(actor1:rt_url)))
+```
+Because my question surronds movie popularity with an interest in understanding if the result more closely mirrow my perception or my daughter's perception, I will also filter the records removing Documentaries - my daughter is not going to watch one of those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all morivies rated more mature than PG-13.  Lastly, I want only complete records.
 ```{r}
 movies_filtered <- filter(movies_filtered, title_type == "Feature Film")
+movieRating <- c("G", "PG", "PG-13")
+movies_filtered <- filter(movies_filtered, mpaa_rating %in% movieRating)
 movies_filtered <- na.omit(movies_filtered)
+```
+There are still some variables that I do not need for my analysis.  For example, I have make the assertion that the name of the movie is not relevant.  Similarly, I do no tneed the `title_type` since I have already selected *Feature Film*.  The varible `critics_rating` is simply a categorical representation of `critics_score`, it too is removed from the data set.  Simliarly, `audience_rating` is a categorical representation of `audience_score` si it too is removed.  Lastly, I have asked my daughter and her friends if the studio that makes a movie makes any difference to them.  The answer was a resounding *No*.  I received the same response when I asked about the director of a movie.
+```{r}
+movies_filtered <- select(movies_filtered, c(-(title:title_type), -critics_rating, -audience_rating,-studio, -director))
 ```
 Let's see what our reduced data looks like:
 ```{r}
@@ -141,7 +152,7 @@ str(movies_filtered)
 ggplot(movies_filtered, aes(x = audience_score)) + geom_histogram() + xlab("Audience Score") + ylab("Count") + ggtitle("Histogram of Audience Score")
 summary(movies_filtered$audience_score)
 ```
-The histogram does appear a bit left skewed but I submit this is understnabale.  I submit that popular movies typcally get rated highly by a broad audience where a less popualr movies will always have a measureable following.
+The histogram does appear a bit left skewed but this is understnabale.  I submit that popular movies typcally get rated highly by a broad audience where a less popular movies will always have a measureable following.
 
 ```{r}
 ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
@@ -178,6 +189,7 @@ ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) +
      ggtitle("How Many Movies Did Directors Produce?") +
      labs(x="No. of Movies Produced", y="No. of Directors")
 ```
+
      
 * * *
 
