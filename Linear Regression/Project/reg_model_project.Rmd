@@ -130,14 +130,14 @@ Not all of the remaining variables are interesting to answer the research questi
 ```{r selectVariables}
 movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -top200_box, -imdb_rating, -imdb_num_votes, -(actor1:rt_url)))
 ```
-Because my question surronds movie popularity with an interest in understanding if the result more closely mirrow my perception or my daughter's perception, I will also filter the records removing Documentaries - my daughter is not going to watch one of those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all morivies rated more mature than PG-13.  Lastly, I want only complete records.
+Because my question surronds movie popularity with an interest in understanding if the result more closely mirrow my perception or my daughter's perception, I will also filter the records removing Documentaries - my daughter is not going to watch one of those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all movies rated more mature than PG-13.  Lastly, I want only complete records.
 ```{r}
 movies_filtered <- filter(movies_filtered, title_type == "Feature Film")
 movieRating <- c("G", "PG", "PG-13")
 movies_filtered <- filter(movies_filtered, mpaa_rating %in% movieRating)
 movies_filtered <- na.omit(movies_filtered)
 ```
-There are still some variables that I do not need for my analysis.  For example, I have make the assertion that the name of the movie is not relevant.  Similarly, I do no tneed the `title_type` since I have already selected *Feature Film*.  The varible `critics_rating` is simply a categorical representation of `critics_score`, it too is removed from the data set.  Simliarly, `audience_rating` is a categorical representation of `audience_score` si it too is removed.  Lastly, I have asked my daughter and her friends if the studio that makes a movie makes any difference to them.  The answer was a resounding *No*.  I received the same response when I asked about the director of a movie.
+There are still some variables that I do not need for my analysis.  For example, I have make the assertion that the name of the movie is not relevant.  Similarly, I do not need the `title_type` since I have already selected *Feature Film*.  The varible `critics_rating` is simply a categorical representation of `critics_score`, it too is removed from the data set.  Simliarly, `audience_rating` is a categorical representation of `audience_score` si it too is removed.  Lastly, I have asked my daughter and her friends if the studio that makes a movie makes any difference to them.  The answer was a resounding *No*.  I received the same response when I asked about the director of a movie.
 ```{r}
 movies_filtered <- select(movies_filtered, c(-(title:title_type), -critics_rating, -audience_rating,-studio, -director))
 ```
@@ -145,36 +145,41 @@ Let's see what our reduced data looks like:
 ```{r}
 dim(movies_filtered)
 str(movies_filtered)
+summary(movies_filtered)
 ```
+Take note of the distribution of the last four variables.  The number of `Yes` responses to `No` responses are very unbalanced.  Let's keep this in mind as we proceed.  We may decide to drop these variables in out model.
 
-
+Let's focus a moment of `audience_score`.  Since it is the variable of interest, let's consider it;s distribution.  For linear regression, we need the date to be normally distributed.
 ```{r}
-ggplot(movies_filtered, aes(x = audience_score)) + geom_histogram() + xlab("Audience Score") + ylab("Count") + ggtitle("Histogram of Audience Score")
 summary(movies_filtered$audience_score)
 ```
-The histogram does appear a bit left skewed but this is understnabale.  I submit that popular movies typcally get rated highly by a broad audience where a less popular movies will always have a measureable following.
+The mean and median are very close suggesting the data may indeed be normal.  Let's confirm this will a histogram:
+```{r}
+ggplot(movies_filtered, aes(x = audience_score)) + geom_histogram() + xlab("Audience Score") + ylab("Count") + ggtitle("Histogram of Audience Score")
+```
+
+The histogram does appear a bit left skewed but this is understandable.  I submit that popular movies typcally get rated highly by a broad audience where a less popular movies will always have a measureable following.  The plot is nearly norm enough for us to consider. 
 
 ```{r}
-ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
-movies_filtered %>% group_by(title_type) %>% summarise(median_score = median(audience_score), iqr_score = IQR(audience_score))
+# ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
+# movies_filtered %>% group_by(title_type) %>% summarise(median_score = median(audience_score), iqr_score = IQR(audience_score))
 ```
 
 ```{r uniqueValues}
-unique1 <- lapply(movies_filtered, unique)
-unique2 <- sapply(unique1, length)
-unique2 <- as.data.frame(unique2)
-colnames(unique2) <- "Count_Distinct"
-unique3<-cbind(Variables=rownames(unique2), unique2)
-rownames(unique3) <- NULL
-unique4 <- unique3 %>% mutate(Percent_Unique = 1-Count_Distinct/nrow(movies_filtered))
-unique4$Percent_Unique <- percent(unique4$Percent_Unique)
-format_table(unique4,list(Variables=formatter("span", style="color:blue")), align = "c")
-kable(unique4)
-ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
+#http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
+
+# unique1 <- lapply(movies_filtered, unique)
+# unique2 <- sapply(unique1, length)
+# unique2 <- as.data.frame(unique2)
+# colnames(unique2) <- "Count_Distinct"
+# unique3<-cbind(Variables=rownames(unique2), unique2)
+# rownames(unique3) <- NULL
+# unique4 <- unique3 %>% mutate(Percent_Unique = 1-Count_Distinct/nrow(movies_filtered))
+# unique4$Percent_Unique <- percent(unique4$Percent_Unique)
+# format_table(unique4,list(Variables=formatter("span", style="color:blue")), align = "c")
+# kable(unique4)
+# ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
 ```
-
-http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
-
 
 ```{r evalDirectors}
 by_directors <- movies_filtered %>% group_by(director) %>% summarize(n()) 
@@ -198,6 +203,25 @@ ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) +
 The project objective for this section:
 
 *Develop a multiple linear regression model to predict a numerical variable in the dataset. The response variable and the explanatory variables can be existing variables in the dataset, or new variables you create based on existing variables.*
+
+```{r}
+movieMLR <- lm(audience_score ~., data=movies_filtered)
+summary(movieMLR)
+
+cor(movies_filtered$critics_score, movies_filtered$runtime)
+plot(movies_filtered$critics_score, movies_filtered$runtime)
+#pairs(movies_filtered) not interesting becuase so many factors
+```
+
+Because the typical pairs plot does not display very useful information when many categorical factrs are in the data set, I opted to use a modified pairs plot avaialble in the psyche package.  (Functions are primarily for multivariate analysis and scale construction using factor analysis, principal component analysis, cluster analysis and reliability analysis, although others provide basic descriptive statistics.)
+```{r}
+library(psych)
+pairs.panels(movies_filtered)
+```
+
+The oval-shaped object in the scatter plots above are called correlation elipses.  They provide a visualization of how strongly the correlated values are.  The dot at the center of the elipse indicates the point of the mean value for the x axis and y axis variables.  The correlation between the two variables is indicated by the shape of the elipse.  An alsmost perfectly round oval indicates a very week correlation.
+
+The curve drawn on the scatter plot is called a loess smooth.  It indicates the general relationship between the x axis and y axis variables.  Note the scatter plot bwtween runtime and audience score.  There appears ther may be a slight nonlinear trend indicateing there may be a higher audience score with short and longer movies with some in the center falling out of favor.  This finding could not have been found from correlations alone.
 
 * * *
 

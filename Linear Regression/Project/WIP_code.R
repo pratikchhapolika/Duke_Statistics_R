@@ -8,8 +8,14 @@ library(scales)
 library(formattable)
 library(car)
 library(MASS)
+library(psych)
 
 tmpMLR <- lm(audience_score ~., data=movies_filtered)
+pairs.panels(movies_filtered)
+
+movies_filtered2 <- select(movies_filtered, genre:audience_score)
+tmpMLR <- lm(audience_score ~., data=movies_filtered2)
+
 summary(tmpMLR)
 
 VARIABLE=c("",gsub("[-^0-9]", "", names(unlist(tmpMLR$xlevels))))
@@ -54,3 +60,4 @@ ceresPlots(tmpMLR)
 
 #See this:  https://rpubs.com/FelipeRego/MultipleLinearRegressionInRFirstSteps
 #See this https://rpubs.com/FelipeRego - really good stuff
+#See http://www.r-bloggers.com/the-relative-importance-of-predictors-let-the-games-begin/
