@@ -61,3 +61,12 @@ ceresPlots(tmpMLR)
 #See this:  https://rpubs.com/FelipeRego/MultipleLinearRegressionInRFirstSteps
 #See this https://rpubs.com/FelipeRego - really good stuff
 #See http://www.r-bloggers.com/the-relative-importance-of-predictors-let-the-games-begin/
+
+
+#Create a new varaible where best_anything = Yes if any best* = Yes
+movies_new <- mutate(movies, best_any=ifelse(best_pic_nom=="yes", 1, 
+               ifelse(best_pic_win=="yes", 1,
+               ifelse(best_actor_win=="yes", 1,
+               ifelse(best_actress_win=="yes", 1,
+               ifelse(best_dir_win=="yes", 1,
+               ifelse(top200_box=="yes", 1, 0)))))))
