@@ -12,6 +12,9 @@ library(psych)
 
 tmpMLR <- lm(audience_score ~., data=movies_filtered)
 pairs.panels(movies_filtered)
+plot(movieMLR, pch=16, which=1)
+#Note how the residuals plot of this last model shows some important points still lying 
+#far away from the middle area of the graph.
 
 movies_filtered2 <- select(movies_filtered, genre:audience_score)
 tmpMLR <- lm(audience_score ~., data=movies_filtered2)
@@ -70,3 +73,7 @@ movies_new <- mutate(movies, best_any=ifelse(best_pic_nom=="yes", 1,
                ifelse(best_actress_win=="yes", 1,
                ifelse(best_dir_win=="yes", 1,
                ifelse(top200_box=="yes", 1, 0)))))))
+
+#Good to know
+library(plyr)
+count(movies_filtered, "genre")

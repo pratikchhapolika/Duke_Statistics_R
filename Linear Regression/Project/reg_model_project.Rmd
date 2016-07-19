@@ -31,7 +31,7 @@ The goal of this section is:
 
 ###Introduction to the Data
 
-The dataset "movies" is comprised of 651 **randomly sampled movies** produced and released before 2016. The movies are from American Studios.  (We know this because the MPAA Ratings in teh data applies only to American movies.)  This dataset includes information from both Rotten Tomatoes and IMDb.
+The data set "movies" is comprised of 651 **randomly sampled movies** produced and released before 2016. The movies are from American Studios.  (We know this because the MPAA Ratings in the data applies only to American movies.)  This data set includes information from both Rotten Tomatoes and IMDb.
 
 ####About Rotten Tomatoes 
 (see https://www.rottentomatoes.com/about/):
@@ -46,7 +46,7 @@ The Internet Movie Database (abbreviated IMDb) is an online database of informat
 The site enables registered users to submit new material and request edits to existing entries. Although all data is checked before going live, the **system has been open to abuse and occasional errors are acknowledged**. Users are also invited to rate any film on a scale of 1 to 10, and the totals are converted into a weighted mean-rating that is displayed beside each title, with online filters employed to deter ballot-stuffing. The site also features message boards which stimulate regular debates among authenticated users.
 
 ###Scope of Inference
-In *Introduction to the Data* above, a few pharases have been **highlighted**.  These phrases provide key information about the generalizability of the data.  This information suggests the dataset should be considered the result of an observational retrospective study that uses a random sampling design to select a representative sample from U.S. movies. When random sampling has been employed in data collection, the results should be generalizable to the target population. Therefore, the results of the analysis should be generailizable to all the movies relased between 1970 - 2014.
+In *Introduction to the Data* above, a few phrases have been **highlighted**.  These phrases provide key information about the generalizability of the data.  This information suggests the data set should be considered the result of an observational retrospective study that uses a random sampling design to select a representative sample from U.S. movies. When random sampling has been employed in data collection, the results should be generalizable to the target population. Therefore, the results of the analysis should be generalizable to all the movies released between 1970 - 2014.
 
 Note that observational studies show associations. In a data analysis, association does not imply causation. Causation can only be inferred from a randomized experiment.  This analysis does not meet the requirements of an experiment.  
 
@@ -58,7 +58,7 @@ Sources of Bias
 Non-Response Bias:  Simple random sampling means that each case in the population has an equal chance of being included and there is no implied connection between the cases in the sample. However, even when people are picked at random, caution
 must be exercised if the non-response is high. If only 30% of the people randomly sampled for a survey respond, then it is uncertain whether the results are representative of the entire population. This non-response bias can skew results.
 
-Voluntary Response Bias:  Voluntary response bias occurs when sample members are self-selected volunteers, as in voluntary samples.  Since volunteers are involved with the collection of movie data, this may be a potential souece of bias that could affect results.
+Voluntary Response Bias:  Voluntary response bias occurs when sample members are self-selected volunteers, as in voluntary samples.  Since volunteers are involved with the collection of movie data, this may be a potential source of bias that could affect results.
 
 * * *
 
@@ -68,7 +68,7 @@ The project objective for this section:
 
 *Develop a research question that you want to answer using these data and a multiple linear regression model. You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.  Include a brief discussion why this question is of interest to you and/or your audience.*
 
-I have a teenage daughter who sees movies with her friends every week.  Occasionally I take a gaggle of girls to the movies and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrtible - in my opinion.  I am often amazed how frequently my perceptions differ from young teenagers.  (I know I should not be surprised.)
+I have a teenage daughter who sees movies with her friends every week.  Occasionally I take a gaggle of girls to the movies and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrible - in my opinion.  I am often amazed how frequently my perceptions differ from young teenagers.  (I know I should not be surprised.)
 
 Research Question:  What does it take to make a movie popular?  
 
@@ -99,7 +99,7 @@ The data frame has 651 records and 32 attributes:
 - `thtr_rel_day`: Day of month the movie is released
 - `dvd_rel_year`: Year the DVD is released
 - `dvd_rel_month`: Month the DVD is released
-- `dvd_rel_day`: Day od month the DVD is released
+- `dvd_rel_day`: Day of month the DVD is released
 - `imdb_rating`: The IMDB rating
 - `imdb_num_votes`: Number of votes on IMDB
 - `critics_rating`: Categorical variable for critics rating on Rotten Tomatoes (Certified Fresh, Fresh, Rotten)
@@ -126,18 +126,21 @@ The `audience_score` is the response variable for my analysis.  It is the variab
 cor(movies$imdb_rating, movies$audience_score)
 ```
 
-Not all of the remaining variables are interesting to answer the research question.  I will also intentionally remove a few variables.  These are variables that I have determined are not relevant to my research question.   I recognizie this is a subjective decision on my part.  I also remove the IMDB rating varibles because of their high corelation to the `audience_score`:
+Not all of the remaining variables are relevant to my research question.   I have also reduce the movies data set to movies released later than 1999.  Why analyze movies that were released prior to my daughter's birth?  Also, younger people likely hold a certain level of prejudice against *old movies*.  I also remove the IMDB rating variables because of their high correlation to the `audience_score`:
 ```{r selectVariables}
-movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -top200_box, -imdb_rating, -imdb_num_votes, -(actor1:rt_url)))
+movies <- filter(movies, thtr_rel_year >1999)
+movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -imdb_rating, -imdb_num_votes, -(actor1:rt_url)))
 ```
-Because my question surronds movie popularity with an interest in understanding if the result more closely mirrow my perception or my daughter's perception, I will also filter the records removing Documentaries - my daughter is not going to watch one of those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all movies rated more mature than PG-13.  Lastly, I want only complete records.
+Because my question surrounds movie popularity with an interest in understanding if the result more closely mirror my perception or my daughter's perception, I will also filter the records removing Documentaries, Arthouse  and International, Musical & Performing Arts and Science Fiction - my daughter does not watch those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all movies rated more mature than PG-13.  Lastly, I want only complete records.
 ```{r}
+removeGenres <- c("Art House & International", "Musical & Performing Arts", "Science Fiction & Fantasy")
+movies_filtered <- filter(movies_filtered, genre != removeGenres)
 movies_filtered <- filter(movies_filtered, title_type == "Feature Film")
 movieRating <- c("G", "PG", "PG-13")
 movies_filtered <- filter(movies_filtered, mpaa_rating %in% movieRating)
 movies_filtered <- na.omit(movies_filtered)
 ```
-There are still some variables that I do not need for my analysis.  For example, I have make the assertion that the name of the movie is not relevant.  Similarly, I do not need the `title_type` since I have already selected *Feature Film*.  The varible `critics_rating` is simply a categorical representation of `critics_score`, it too is removed from the data set.  Simliarly, `audience_rating` is a categorical representation of `audience_score` si it too is removed.  Lastly, I have asked my daughter and her friends if the studio that makes a movie makes any difference to them.  The answer was a resounding *No*.  I received the same response when I asked about the director of a movie.
+There are still some variables that I do not need for my analysis.  For example, I have make the assertion that the name of the movie is not relevant.  Similarly, I do not need the `title_type` since I have already selected *Feature Film*.  The variable `critics_rating` is simply a categorical representation of `critics_score`, it too is removed from the data set.  Similarly, `audience_rating` is a categorical representation of `audience_score` so it too is removed.  Lastly, I have asked my daughter and her friends if the studio that makes a movie makes any difference to them.  The answer was a resounding *No*.  I received the same response when I asked about the director of a movie.
 ```{r}
 movies_filtered <- select(movies_filtered, c(-(title:title_type), -critics_rating, -audience_rating,-studio, -director))
 ```
@@ -147,9 +150,44 @@ dim(movies_filtered)
 str(movies_filtered)
 summary(movies_filtered)
 ```
-Take note of the distribution of the last four variables.  The number of `Yes` responses to `No` responses are very unbalanced.  Let's keep this in mind as we proceed.  We may decide to drop these variables in out model.
+Take note of the distribution of the last four variables.  The number of `Yes` responses to `No` responses are very unbalanced.  To attenuate the potential impact of this unbalanced data, I will combine several variables into one.  Specifically, if any of the following factor variables is *Yes*, then a new variable called `besy_any` will be *Yes*.  This consolidates the six variables into one.
 
-Let's focus a moment of `audience_score`.  Since it is the variable of interest, let's consider it;s distribution.  For linear regression, we need the date to be normally distributed.
+- `best_pic_nom`
+- `best_pic_win`
+- `best_actor_win`
+- `best_actress win`
+- `best_dir_win`
+- `top200_box`
+
+```{r}
+#Create a new varaible where best_anything = Yes if any best* = Yes
+movies_filtered <- mutate(movies_filtered, best_any=ifelse(best_pic_nom=="yes", 1, 
+               ifelse(best_pic_win=="yes", 1,
+               ifelse(best_actor_win=="yes", 1,
+               ifelse(best_actress_win=="yes", 1,
+               ifelse(best_dir_win=="yes", 1,
+               ifelse(top200_box=="yes", 1, 0)))))))
+#Make best_any into a factor
+movies_filtered$best_any <- factor(movies_filtered$best_any, labels = c("No", "Yes"))
+#Remove the 6 variables that have been consolidated into best_any
+movies_filtered <- select(movies_filtered, genre, runtime, mpaa_rating, critics_score, audience_score, best_any)
+
+```
+We have made many data transformations.  Let's review the current state of the data:
+
+```{r}
+dim(movies_filtered)
+str(movies_filtered)
+summary(movies_filtered)
+```
+Things are looking OK to proceed.  We have kept the data of interest and consolidated unbalance data into a single variable.  Before moving on, let's see if `best_any` is more balanced than the other six variables we used to have:
+```{r}
+table(movies_filtered$best_any)
+```
+
+This looks much better!
+
+Let's focus a moment of `audience_score`.  Since it is the variable of interest, let's consider it's distribution.  For linear regression, we need the date to be normally distributed.
 ```{r}
 summary(movies_filtered$audience_score)
 ```
@@ -158,7 +196,7 @@ The mean and median are very close suggesting the data may indeed be normal.  Le
 ggplot(movies_filtered, aes(x = audience_score)) + geom_histogram() + xlab("Audience Score") + ylab("Count") + ggtitle("Histogram of Audience Score")
 ```
 
-The histogram does appear a bit left skewed but this is understandable.  I submit that popular movies typcally get rated highly by a broad audience where a less popular movies will always have a measureable following.  The plot is nearly norm enough for us to consider. 
+The histogram does appear a bit left skewed but this is understandable.  I submit that popular movies typically get rated highly by a broad audience where a less popular movies will always have a measurable following.  The plot is nearly norm enough for us to consider. 
 
 ```{r}
 # ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
@@ -182,18 +220,32 @@ The histogram does appear a bit left skewed but this is understandable.  I submi
 ```
 
 ```{r evalDirectors}
-by_directors <- movies_filtered %>% group_by(director) %>% summarize(n()) 
-colnames(by_directors) <- c("Director_Name", "Count_Movies")
-by_directors <- by_directors[order(-by_directors$Count_Movies),]
-range(by_directors$Count_Movies)
-by_dir_cnt <- by_directors %>% group_by(Count_Movies) %>% summarize(n())
-colnames(by_dir_cnt) <- c("Num_Movies", "Num_Directors")
-ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) + 
-     geom_bar(stat = "identity", fill="lightgreen") + 
-     geom_text(aes(label=Num_Directors), vjust=-.5) +
-     ggtitle("How Many Movies Did Directors Produce?") +
-     labs(x="No. of Movies Produced", y="No. of Directors")
+# by_directors <- movies_filtered %>% group_by(director) %>% summarize(n()) 
+# colnames(by_directors) <- c("Director_Name", "Count_Movies")
+# by_directors <- by_directors[order(-by_directors$Count_Movies),]
+# range(by_directors$Count_Movies)
+# by_dir_cnt <- by_directors %>% group_by(Count_Movies) %>% summarize(n())
+# colnames(by_dir_cnt) <- c("Num_Movies", "Num_Directors")
+# ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) + 
+#      geom_bar(stat = "identity", fill="lightgreen") + 
+#      geom_text(aes(label=Num_Directors), vjust=-.5) +
+#      ggtitle("How Many Movies Did Directors Produce?") +
+#      labs(x="No. of Movies Produced", y="No. of Directors")
 ```
+
+Our new data set contains the variables to be used in our model. It is now easy for us to plot them using the plot function. Because the base R pairs plot does not display very useful information when many categorical factors are in the data set, I opted to use a modified pairs plot available in the psyche package.  (Functions are primarily for multivariate analysis and scale construction using factor analysis, principal component analysis, cluster analysis and reliability analysis, although others provide basic descriptive statistics.)
+```{r}
+library(psych)
+pairs.panels(movies_filtered)
+```
+
+The matrix plot above allows us to visualize the relationship among all variables in one single image. 
+
+The oval-shaped object in the scatter plots above are called correlation ellipses.  They provide a visualization of how strongly the correlated values are.  The dot at the center of the ellipse indicates the point of the mean value for the x axis and y axis variables.  The correlation between the two variables is indicated by the shape of the ellipse.  An almost perfectly round oval indicates a very week correlation.  Note that there appears to be a correlation between `best_any` and the other variables as indicated by the elongated ellipsis.
+
+The curve drawn on the scatter plot is called a loess smooth.  It indicates the general relationship between the x axis and y axis variables.  Note the scatter plot between runtime and audience score.  There appears there may be a slight nonlinear trend indicating there may be a higher audience score with short and longer movies with some in the center falling out of favor.  This finding could not have been found from correlations alone.
+
+Check for correlation among the variables. This step is very important to understand the relation of dependent variable with the independent variables and correlations among the variables. In general, there should not be any correlation among the independent variables.  Other than `critics_score` and `audience_score`, there do not appear to be any notably strong correlations.
 
      
 * * *
@@ -204,28 +256,64 @@ The project objective for this section:
 
 *Develop a multiple linear regression model to predict a numerical variable in the dataset. The response variable and the explanatory variables can be existing variables in the dataset, or new variables you create based on existing variables.*
 
+### Initial Model
+To get started, we will build a linear model using all the remaining variables:
 ```{r}
 movieMLR <- lm(audience_score ~., data=movies_filtered)
 summary(movieMLR)
-
-cor(movies_filtered$critics_score, movies_filtered$runtime)
-plot(movies_filtered$critics_score, movies_filtered$runtime)
-#pairs(movies_filtered) not interesting becuase so many factors
 ```
+From the model output and the scatterplot we can make some interesting observations:
 
-Because the typical pairs plot does not display very useful information when many categorical factrs are in the data set, I opted to use a modified pairs plot avaialble in the psyche package.  (Functions are primarily for multivariate analysis and scale construction using factor analysis, principal component analysis, cluster analysis and reliability analysis, although others provide basic descriptive statistics.)
+- Holding all other variables constant, improving one unit in `crtics_score` will see the average `audience_score` improve by 0.4 points. Similarly, seeing an improvement in `genre - Drama` by one point on average may lead to an an a 14.5 point improvement in `audience_score`.
+- The Adjusted R-squared suggests the variables account for 56% of the variability of the regression model.
+- The model output can also help answer whether there is a relationship between the response and the predictors used. We can use the value of our F-Statistic to test whether all our coefficients are equal to zero. The F-Statistic value from our model is 14.48 on 11 and 105 degrees of freedom. So assuming that the number of data points is appropriate and given that the p-values returned are low, we have some evidence that at least one of the predictors is associated with income.
+- Given that we have indications that at least one of the predictors is associated with `audience_score` and based on the fact that some variables have a high p-value, we can consider removing some from the model and see how the model fit changes.
+
 ```{r}
-library(psych)
-pairs.panels(movies_filtered)
+# cor(movies_filtered$critics_score, movies_filtered$runtime)
+# plot(movies_filtered$critics_score, movies_filtered$runtime)
+# #pairs(movies_filtered) not interesting becuase so many factors
 ```
 
-The oval-shaped object in the scatter plots above are called correlation elipses.  They provide a visualization of how strongly the correlated values are.  The dot at the center of the elipse indicates the point of the mean value for the x axis and y axis variables.  The correlation between the two variables is indicated by the shape of the elipse.  An alsmost perfectly round oval indicates a very week correlation.
 
-The curve drawn on the scatter plot is called a loess smooth.  It indicates the general relationship between the x axis and y axis variables.  Note the scatter plot bwtween runtime and audience score.  There appears ther may be a slight nonlinear trend indicateing there may be a higher audience score with short and longer movies with some in the center falling out of favor.  This finding could not have been found from correlations alone.
+### Model Selection
+
+
+We will now proceed with the variable selection : to select the best model answering our research question, we will perform a backward adjusted R^2 elimination. 
+
+We saw in the model summary above that mpaa_ratingPG-13 has the highest p-value: 0.4263.  Because mpaa_rating is a factor variable, we must decide whether we remove all mpaa_ratings or keep them all.  Since the mpaa_ratingPG also does not have a significant p-value, we will remove them all:
+```{r}
+#The full model output:  
+#Multiple R-squared:  0.6026,	Adjusted R-squared:  0.561
+#F-statistic: 14.48 on 11 and 105 DF,  p-value: < 2.2e-16
+movieMLR2 <- lm(audience_score ~. -mpaa_rating, data=movies_filtered)
+summary(movieMLR2)
+```
+| Step | Variables Included | Removed | adjusted R^2 |
+| -------- | ---------------------------------------- | ------------ | ---------- |
+| Full | MLR <- lm(audience_score ~., movies_filtered) | -- | **0.561** |
+| Step 1 | MLR <- lm(audience_score ~. -mpaa_rating, movies_filtered) | mpaa_rating | 0.5556 |
+| -- | MLR <- lm(audience_score ~. -runtime, movies_filtered) | runtime | 0.5594 |
+| -- | MLR <- lm(audience_score ~. -best_any, movies_filtered) | best_any | 0.555 |
+| -- | MLR <- lm(audience_score ~. -genre, movies_filtered) | genre | 0.4981 |
+| -- | MLR <- lm(audience_score ~. -critics_score, movies_filtered) | critics_score |0.3772  |
+
+Using backwards selection using the adjusted R^2 method suggests that the full model with an adjusted R^2 value of 0.561 explains 56%of the variability in the response variable explained by the explanatory variables. 
+
+Typically when using backward elimination, the adjusted R-squared value slightly increases as the non-significant variables are removed.  In this case, we witness a slight drop.  The backward selection process suggests that we stop and that the full model is the optimal model.
+
+
+
+```
+
+
+
 
 * * *
 
 ## Part 5: Prediction
+
+see http://www.r-tutor.com/elementary-statistics/simple-linear-regression/prediction-interval-linear-regression
 
 The project objective for this section:
 
