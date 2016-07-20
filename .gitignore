@@ -46,3 +46,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 .Rproj.user
+*.pper
+.Rproj.user/2794CAAE/pcs/workbench-pane.pper
+*.pper

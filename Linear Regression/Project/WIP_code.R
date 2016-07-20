@@ -110,4 +110,10 @@ movies_new <- mutate(movies, best_any=ifelse(best_pic_nom=="yes", 1,
                ifelse(best_dir_win=="yes", 1,
                ifelse(top200_box=="yes", 1, 0)))))))
 
+#Way to manage the exlanatory variables in a ln function - see ?lm
+#see http://www.r-bloggers.com/using-the-update-function-during-variable-selection/
+MLR <- lm(audience_score ~., data=movies_filtered)#full model
+MLR2 <- update(MLR, . ~  . -mpaa_rating)
+
+MLR_Step2 <- update(MLR2, .~. -runtime)
 

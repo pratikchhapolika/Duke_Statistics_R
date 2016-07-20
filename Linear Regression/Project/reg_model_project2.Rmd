@@ -11,7 +11,7 @@ output:
 
 ### Load packages and data
 
-```{r load-packages, message = FALSE}
+```{r load-packages, message = FALSE, warning=FALSE}
 library(ggplot2)
 library(dplyr)
 library(statsr)
@@ -45,7 +45,7 @@ Rotten Tomatoes and the Tomatometer™ rating is the most trusted measurement of
 
 The Internet Movie Database (abbreviated IMDb) is an online database of information related to films, television programs and video games, including cast, production crew, fictional characters, biographies, plot summaries, trivia and reviews. As of June 2016, IMDb has approximately 3.7 million titles (including episodes) and 7 million personalities in its database.
 
-The site enables registered users to submit new material and request edits to existing entries. Although all data is checked before going live, the **system has been open to abuse and occasional errors are acknowledged**. Users are also invited to rate any film on a scale of 1 to 10, and the totals are converted into a weighted mean-rating that is displayed beside each title, with online filters employed to deter ballot-stuffing. The site also features message boards which stimulate regular debates among authenticated users.
+The site enables **registered users to submit new material and request edits** to existing entries. Although all data is checked before going live, the **system has been open to abuse and occasional errors are acknowledged**. Users are also invited to rate any film on a scale of 1 to 10, and the totals are converted into a weighted mean-rating that is displayed beside each title, with online filters employed to deter ballot-stuffing. The site also features message boards which stimulate regular debates among authenticated users.
 
 ###Scope of Inference
 In *Introduction to the Data* above, a few phrases have been **highlighted**.  These phrases provide key information about the generalizability of the data.  This information suggests the data set should be considered the result of an observational retrospective study that uses a random sampling design to select a representative sample from U.S. movies. When random sampling has been employed in data collection, the results should be generalizable to the target population. Therefore, the results of the analysis should be generalizable to all the movies released between 1970 - 2014.
@@ -120,20 +120,16 @@ The data frame has 651 records and 32 attributes:
 - `imdb_id`: IMDB ID of the movie
 - `rt_url`: Link to Rotten Tomatoes page for the movie
 
-```{r}
-str(movies)
-```
-The `audience_score` is the response variable for my analysis.  It is the variable we will solve for in the analysis.  Why did I chose `audience_score` instead of the `imdb_rating`?  No specific reason.  It was a coin toss.  Both variables are highly correlated so picking one over the other is a random choice on my part.  Here is the correlation calculation:
+The `audience_score` is the response variable for my analysis.  It is the variable we will solve for in the analysis.  Why did I chose `audience_score` instead of the `imdb_rating`?  No specific reason.  It was a coin toss.  Both variables are correlated so picking one over the other is a random choice on my part.  Here is the correlation calculation:
 ```{r correlation}
 cor(movies$imdb_rating, movies$audience_score)
 ```
-
-Not all of the remaining variables are relevant to my research question.   I have also reduce the movies data set to movies released later than 1999.  Why analyze movies that were released prior to my daughter's birth?  Also, younger people likely hold a certain level of prejudice against *old movies*.  I also remove the IMDB rating variables because of their high correlation to the `audience_score`:
+Not all of the variables are relevant to my research question.   I have limited the movies data set to movies released later than 1999.  Younger people likely hold a certain level of prejudice against *old movies*.  I also remove the dates related to release schedules and all the individual actors.
 ```{r selectVariables}
-movies <- filter(movies, thtr_rel_year >1999)
-movies_filtered <- select(movies, c(-(thtr_rel_year:dvd_rel_day), -imdb_rating, -imdb_num_votes, -(actor1:rt_url)))
+movies_filtered <- filter(movies, thtr_rel_year >1999)
+movies_filtered <- select(movies_filtered, c(-(thtr_rel_year:dvd_rel_day), -(actor1:rt_url)))
 ```
-Because my question surrounds movie popularity with an interest in understanding if the result more closely mirror my perception or my daughter's perception, I will also filter the records removing Documentaries, Arthouse  and International, Musical & Performing Arts and Science Fiction - my daughter does not watch those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all movies rated more mature than PG-13.  Lastly, I want only complete records.
+Because my question surrounds movie popularity with an interest in understanding if the result more closely mirrors my perception or my daughter's perception, I will also filter the records removing Documentaries, Arthouse  and International, Musical & Performing Arts and Science Fiction - my daughter does not watch those!  Also, I am specifically interested in movies in theaters - not TV movies.  Because my daughter is a young teenage, I also removed all movies rated more mature than PG-13.  Lastly, I want only complete records.
 ```{r}
 removeGenres <- c("Art House & International", "Musical & Performing Arts", "Science Fiction & Fantasy")
 movies_filtered <- filter(movies_filtered, genre != removeGenres)
@@ -144,7 +140,7 @@ movies_filtered <- na.omit(movies_filtered)
 ```
 There are still some variables that I do not need for my analysis.  For example, I have make the assertion that the name of the movie is not relevant.  Similarly, I do not need the `title_type` since I have already selected *Feature Film*.  The variable `critics_rating` is simply a categorical representation of `critics_score`, it too is removed from the data set.  Similarly, `audience_rating` is a categorical representation of `audience_score` so it too is removed.  Lastly, I have asked my daughter and her friends if the studio that makes a movie makes any difference to them.  The answer was a resounding *No*.  I received the same response when I asked about the director of a movie.
 ```{r}
-movies_filtered <- select(movies_filtered, c(-(title:title_type), -critics_rating, -audience_rating,-studio, -director))
+movies_filtered <- select(movies_filtered, c(-(title:title_type), -critics_rating, -audience_rating, -studio, -director))
 ```
 Let's see what our reduced data looks like:
 ```{r}
@@ -172,7 +168,7 @@ movies_filtered <- mutate(movies_filtered, best_any=ifelse(best_pic_nom=="yes", 
 #Make best_any into a factor
 movies_filtered$best_any <- factor(movies_filtered$best_any, labels = c("No", "Yes"))
 #Remove the 6 variables that have been consolidated into best_any
-movies_filtered <- select(movies_filtered, genre, runtime, mpaa_rating, critics_score, audience_score, best_any)
+movies_filtered <- select(movies_filtered, genre, runtime, mpaa_rating, imdb_rating, imdb_num_votes, critics_score, audience_score, best_any)
 ```
 We have made many data transformations.  Let's review the current state of the data:
 
@@ -229,9 +225,9 @@ summary(MLR)
 ```
 From the model output and the scatterplot we can make some interesting observations:
 
-- Holding all other variables constant, improving one unit in `crtics_score` will see the average `audience_score` improve by 0.4 points. Similarly, seeing an improvement in `genre - Drama` by one point on average may lead to an an a 14.5 point improvement in `audience_score`.
-- The Adjusted R-squared suggests the variables account for 56% of the variability of the regression model.
-- The model output can also help answer whether there is a relationship between the response and the predictors used. We can use the value of our F-Statistic to test whether all our coefficients are equal to zero. The F-Statistic value from our model is 14.48 on 11 and 105 degrees of freedom. So assuming that the number of data points is appropriate and given that the p-values returned are low, we have some evidence that at least one of the predictors is associated with income.
+- Holding all other variables constant, improving one unit in `imdb_rating` will see the average `audience_score` improve by nearly 9 points. 
+- The Adjusted R-squared suggests the variables account for almost 70% of the variability of the regression model.
+- The model output can also help answer whether there is a relationship between the response and the predictors used. We can use the value of our F-Statistic to test whether all our coefficients are equal to zero. The F-Statistic value from our model is 21.77 on 13 and 103 degrees of freedom. So assuming that the number of data points is appropriate and given that the p-values returned are low, we have some evidence that at least one of the predictors is associated with income.
 - Given that we have indications that at least one of the predictors is associated with `audience_score` and based on the fact that some variables have a high p-value, we can consider removing some from the model and see how the model fit changes.
 
 ```{r}
@@ -244,30 +240,39 @@ From the model output and the scatterplot we can make some interesting observati
 
 We will now proceed with the variable selection : to select the best model answering our research question, we will perform a backward adjusted R^2 elimination. 
 
-We saw in the model summary above that mpaa_ratingPG-13 has the highest p-value: 0.4263.  Because mpaa_rating is a factor variable, we must decide whether we remove all mpaa_ratings or keep them all.  Since the mpaa_ratingPG also does not have a significant p-value, we will remove them all:
+We saw in the model summary above that genre - Mystery & Suspense has the highest p-value: 0.98262.  Because `genre` is a factor variable, we must decide whether we remove all `genre` variables or keep them all.  Since the `genreDrama` has a significant p-value, we will keep them all.
+
+Conversely, both of the `mpaa_rating` variable output non-significant p-values.  Therefore they are all candidates for removal. Let's do that now:
 ```{r}
-#The full model output:  
-#Multiple R-squared:  0.6026,	Adjusted R-squared:  0.561
-#F-statistic: 14.48 on 11 and 105 DF,  p-value: < 2.2e-16
 MLR2 <- lm(audience_score ~. -mpaa_rating, data=movies_filtered)
 summary(MLR2)
 ```
-In the table below, the results of the linear regression without the `mpaa_rating` variable is show in the first line of Step 1.  The adjusted R^2 value is 0.5556 - just a bit lower than the full model.
+In the table below, the results of the linear regression without the `mpaa_rating` variable is show in the first line of Step 1.  The adjusted R^2 value is 0.7027 - just a bit higher than the full model.  (Could automate this process [http://www.r-bloggers.com/variable-selection-using-automatic-methods/] but the project demands)
 
-Continuing the process of removing one variable from the equation and recording the resultant adjusted R^2 value, we learn that the full model actually provides the highest adjusted R^2 value. 
+Continuing the process of removing one variable from the equation and recording the resultant adjusted R^2 value, we learn that the full model actually provides the highest adjusted R^2 value. I changed the method to modify the regression model starting in Step 2 to make it simpler.  (See http://www.r-bloggers.com/using-the-update-function-during-variable-selection/ for information on the update function.)
 
 | Step | Variables Included | Removed | adjusted R^2 |
 | -------- | ---------------------------------------- | ------------ | ---------- |
-| Full | MLR <- lm(audience_score ~., movies_filtered) | -- | **0.561** |
-| Step 1 | MLR <- lm(audience_score ~. -mpaa_rating, movies_filtered) | mpaa_rating | 0.5556 |
-| -- | MLR <- lm(audience_score ~. -runtime, movies_filtered) | runtime | 0.5594 |
-| -- | MLR <- lm(audience_score ~. -best_any, movies_filtered) | best_any | 0.555 |
-| -- | MLR <- lm(audience_score ~. -genre, movies_filtered) | genre | 0.4981 |
-| -- | MLR <- lm(audience_score ~. -critics_score, movies_filtered) | critics_score |0.3772  |
+| Full | MLR <- lm(audience_score ~., movies_filtered) | -- | 0.6995 |
+| Step 1 | MLR1 <- lm(audience_score ~. -mpaa_rating, movies_filtered) | mpaa_rating | **0.7027** |
+| -- | MLR <- lm(audience_score ~. -runtime, movies_filtered) | runtime | 0.7016 |
+| -- | MLR <- lm(audience_score ~. -best_any, movies_filtered) | best_any | 0.6961 |
+| -- | MLR <- lm(audience_score ~. -genre, movies_filtered) | genre | 0.6532 |
+| -- | MLR <- lm(audience_score ~. -critics_score, movies_filtered) | critics_score |0.6964 |
+| -- | MLR <- lm(audience_score ~. -imdb_rating, movies_filtered) | imdb_rating |0.5877 |
+| -- | MLR <- lm(audience_score ~. -imdb_num_votes, movies_filtered) | imdb_num_votes |0.6875 |
+| Step 2 | MLR2 <- update(MLR1, .~. -runtime) | runtime | **0.7044** |
+| -- | MLR2 <- update(MLR1, .~. -imdb_rating) | imdb_rating | 0.5812 |
+| -- | MLR2 <- update(MLR1, .~. -imdb_num_votes) | imdb_num_votes | 0.6912 |
+| -- | MLR2 <- update(MLR1, .~. -critics_score) | critics_score | 0.6998 |
+| -- | MLR2 <- update(MLR1, .~. -best_any) | best_any | 0.6993 |
+| Step 3 | MLR3 <- update(MLR2, .~. -imdb_rating) | imdb_rating | 0.5779 |
+| -- | MLR3 <- update(MLR2, .~. -imdb_num_votes) | imdb_num_votes | 0.6865 |
+| -- | MLR3 <- update(MLR2, .~. -critics_score) | critics_score | 0.6961 |
+| -- | MLR3 <- update(MLR2, .~. -best_any) | best_any | 0.6993 |
 
-Using backwards selection using the adjusted R^2 method suggests that the full model with an adjusted R^2 value of 0.561 explains 56% of the variability in the response variable explained by the explanatory variables. 
 
-Typically when using backward elimination, the adjusted R-squared value slightly increases as the non-significant variables are removed.  In this case, we witness a slight drop.  The backward selection process suggests that we stop and that the full model is the optimal model.
+Using backwards selection using the adjusted R^2 method suggests that the  model with an adjusted R^2 value of 0.7044 explains 70% of the variability in the response variable explained by the explanatory variables. 
 
 ####Assumptions
 Multiple linear regression has some inherent assumptions that we should evaluate:
@@ -328,14 +333,15 @@ The project objective for this section:
 
 The movie which audience score we will try to predict is *The Huntsman: Winter's War*.  Using data from IMDB and Rotten Tomatoes a dataframe is created:
 ```{r}
-huntsman <- data.frame(genre = "Action & Adventure", runtime = 121, mpaa_rating = "PG-13",  critics_score = 17, best_any = "Yes")
+huntsman <- data.frame(genre = "Action & Adventure", imdb_rating = 6.1, imdb_num_votes = 31636, critics_score = 17, best_any = "Yes")
 ```
-The *genre* and *log_imdb_num_votes* variables come from the IMDb website and the *critics_score* variable and the response come from the Rotten Tomatoes website. We will now predict the audience score with our model.
+The `genre`, `imdb_num_votes` and `imdb_rating` variables come from the IMDb website and the *critics_score* variable and the response come from the Rotten Tomatoes website. We will now predict the audience score with our model.
 
 Let's use our regression model to predict the `audience_score`:
 
 ```{r}
-huntsman_score <- predict(MLR, newdata = huntsman, interval = "prediction")
+MLR2 <- update(MLR1, .~. -runtime)
+huntsman_score <- predict(MLR2, newdata = huntsman, interval = "prediction")
 huntsman_score
 ```
 Let's evaluate the output from the *The Huntsman: Winter's War* prediction:
@@ -355,7 +361,7 @@ The project objective for this section:
 
 *A brief summary of your findings from the previous sections without repeating your statements from earlier as well as a discussion of what you have learned about the data and your research question. You should also discuss any shortcomings of your current study (either due to data collection or methodology) and include ideas for possible future research.*
 
-We began this analysis with 32 variables that seemed to provide promise that we could build a robust model to predict the `audience_score` reliably.  However, as the data was examined and the variables evaluated and modified to meet the needs of the research question, our final data set was limited to one response variable and 5 explanatory variables.  Our model selection determined that the best performing model was the original full model that had the highest adjusted R^2 value.
+We began this analysis with 32 variables that seemed to provide promise that we could build a robust model to predict the `audience_score` reliably.  However, as the data was examined and the variables evaluated and modified to meet the needs of the research question, our final data set was limited to one response variable and 7 explanatory variables.  Our model selection determined that the best performing model was the original full model that had the highest adjusted R^2 value.
 
 The model did provide sufficient accuracy to properly predict the value of a 2016 movie - the predicted value fell within the 95% confidence levels.  However, it is clear the model needs improvement.  We can explain only 56% of the variance of `audience_score`.  In the future we might consider:
 
