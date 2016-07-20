@@ -18,6 +18,9 @@ library(statsr)
 library(knitr)
 library(scales)
 library(formattable)
+library(psych)#improved pairs plot
+library(car)#used for ceres plot - normality assumption
+library(MASS)#useful for residual normailty
 ### Load data
 load("movies.Rdata")
 ```
@@ -171,7 +174,6 @@ movies_filtered <- mutate(movies_filtered, best_any=ifelse(best_pic_nom=="yes", 
 movies_filtered$best_any <- factor(movies_filtered$best_any, labels = c("No", "Yes"))
 #Remove the 6 variables that have been consolidated into best_any
 movies_filtered <- select(movies_filtered, genre, runtime, mpaa_rating, critics_score, audience_score, best_any)
-
 ```
 We have made many data transformations.  Let's review the current state of the data:
 
@@ -196,46 +198,11 @@ The mean and median are very close suggesting the data may indeed be normal.  Le
 ggplot(movies_filtered, aes(x = audience_score)) + geom_histogram() + xlab("Audience Score") + ylab("Count") + ggtitle("Histogram of Audience Score")
 ```
 
-The histogram does appear a bit left skewed but this is understandable.  I submit that popular movies typically get rated highly by a broad audience where a less popular movies will always have a measurable following.  The plot is nearly norm enough for us to consider. 
-
-```{r}
-# ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
-# movies_filtered %>% group_by(title_type) %>% summarise(median_score = median(audience_score), iqr_score = IQR(audience_score))
-```
-
-```{r uniqueValues}
-#http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
-
-# unique1 <- lapply(movies_filtered, unique)
-# unique2 <- sapply(unique1, length)
-# unique2 <- as.data.frame(unique2)
-# colnames(unique2) <- "Count_Distinct"
-# unique3<-cbind(Variables=rownames(unique2), unique2)
-# rownames(unique3) <- NULL
-# unique4 <- unique3 %>% mutate(Percent_Unique = 1-Count_Distinct/nrow(movies_filtered))
-# unique4$Percent_Unique <- percent(unique4$Percent_Unique)
-# format_table(unique4,list(Variables=formatter("span", style="color:blue")), align = "c")
-# kable(unique4)
-# ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
-```
-
-```{r evalDirectors}
-# by_directors <- movies_filtered %>% group_by(director) %>% summarize(n()) 
-# colnames(by_directors) <- c("Director_Name", "Count_Movies")
-# by_directors <- by_directors[order(-by_directors$Count_Movies),]
-# range(by_directors$Count_Movies)
-# by_dir_cnt <- by_directors %>% group_by(Count_Movies) %>% summarize(n())
-# colnames(by_dir_cnt) <- c("Num_Movies", "Num_Directors")
-# ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) + 
-#      geom_bar(stat = "identity", fill="lightgreen") + 
-#      geom_text(aes(label=Num_Directors), vjust=-.5) +
-#      ggtitle("How Many Movies Did Directors Produce?") +
-#      labs(x="No. of Movies Produced", y="No. of Directors")
-```
+The histogram appears relatively normal.
 
 Our new data set contains the variables to be used in our model. It is now easy for us to plot them using the plot function. Because the base R pairs plot does not display very useful information when many categorical factors are in the data set, I opted to use a modified pairs plot available in the psyche package.  (Functions are primarily for multivariate analysis and scale construction using factor analysis, principal component analysis, cluster analysis and reliability analysis, although others provide basic descriptive statistics.)
 ```{r}
-library(psych)
+#uses the psych package
 pairs.panels(movies_filtered)
 ```
 
@@ -247,7 +214,6 @@ The curve drawn on the scatter plot is called a loess smooth.  It indicates the 
 
 Check for correlation among the variables. This step is very important to understand the relation of dependent variable with the independent variables and correlations among the variables. In general, there should not be any correlation among the independent variables.  Other than `critics_score` and `audience_score`, there do not appear to be any notably strong correlations.
 
-     
 * * *
 
 ## Part 4: Modeling
@@ -259,8 +225,8 @@ The project objective for this section:
 ### Initial Model
 To get started, we will build a linear model using all the remaining variables:
 ```{r}
-movieMLR <- lm(audience_score ~., data=movies_filtered)
-summary(movieMLR)
+MLR <- lm(audience_score ~., data=movies_filtered)
+summary(MLR)
 ```
 From the model output and the scatterplot we can make some interesting observations:
 
@@ -275,9 +241,7 @@ From the model output and the scatterplot we can make some interesting observati
 # #pairs(movies_filtered) not interesting becuase so many factors
 ```
 
-
 ### Model Selection
-
 
 We will now proceed with the variable selection : to select the best model answering our research question, we will perform a backward adjusted R^2 elimination. 
 
@@ -286,9 +250,13 @@ We saw in the model summary above that mpaa_ratingPG-13 has the highest p-value:
 #The full model output:  
 #Multiple R-squared:  0.6026,	Adjusted R-squared:  0.561
 #F-statistic: 14.48 on 11 and 105 DF,  p-value: < 2.2e-16
-movieMLR2 <- lm(audience_score ~. -mpaa_rating, data=movies_filtered)
+MLR2 <- lm(audience_score ~. -mpaa_rating, data=movies_filtered)
 summary(movieMLR2)
 ```
+In the table below, the results of the linear regression without the `mpaa_rating` variable is show in the first line of Step 1.  The adjusted R^2 value is 0.5556 - just a bit lower than the full model.
+
+Continuing the process of removing one variable from the equation and recording the resultant adjusted R^2 value, we learn that the full model actually provides the highest adjusted R^2 value. 
+
 | Step | Variables Included | Removed | adjusted R^2 |
 | -------- | ---------------------------------------- | ------------ | ---------- |
 | Full | MLR <- lm(audience_score ~., movies_filtered) | -- | **0.561** |
@@ -298,16 +266,56 @@ summary(movieMLR2)
 | -- | MLR <- lm(audience_score ~. -genre, movies_filtered) | genre | 0.4981 |
 | -- | MLR <- lm(audience_score ~. -critics_score, movies_filtered) | critics_score |0.3772  |
 
-Using backwards selection using the adjusted R^2 method suggests that the full model with an adjusted R^2 value of 0.561 explains 56%of the variability in the response variable explained by the explanatory variables. 
+Using backwards selection using the adjusted R^2 method suggests that the full model with an adjusted R^2 value of 0.561 explains 56% of the variability in the response variable explained by the explanatory variables. 
 
 Typically when using backward elimination, the adjusted R-squared value slightly increases as the non-significant variables are removed.  In this case, we witness a slight drop.  The backward selection process suggests that we stop and that the full model is the optimal model.
 
+####Assumptions
+Multiple linear regression has some inherent assumptions that we should evaluate:
 
+1. Each variable is linearly related to the outcome
+2. The residuals of the model are nearly normal
+3. The variability of the residuals is nearly constant
+4. The residuals are independent
 
+Let's evaluate each of these assumption.
+
+##### Linear relationships between Numerical x and y
+
+```{r}
+par(mfrow=c(1,2))
+plot(MLR$residuals ~ movies_filtered$critics_score, main = "Residuals vs.critics_score")
+abline(h=0)
+plot(MLR$residuals ~ movies_filtered$runtime, main = "Residuals vs. runtime")
+abline(h=0)
+```
+The plots above provide some evidence that suggests some caution.  Note:
+
+- The `genre` boxplot shows a fair amount of variability
+- While the `runtime` residuals look reasonably normal around 0, `crtitics_score` shows some non-linear traits.
+##### Nearly Normal Residuals with Mean 0
+```{r}
+hist(MLR$residuals, main = "Histogram of Residuals")
+qqnorm(MLR$residuals, main = "Normal Probability Plot of Residuals")
+qqline(MLR$residuals)
+```
+We are seeing a little bit of a skew in the residuals. However, the skew doesn't look too bad. And looking at the normal probability plot as well, except for at the tail areas, we're not seeing huge deviations from the mean. We can say that this condition seems to be fairly satisfied - but it is an area that might be further evaluated.
+
+##### Variablility of residuals is nearly constant
+```{r}
+plot(MLR$residuals ~ MLR$fitted.values, main = "Residuals vs. Fitted")
+abline(h=0)
+plot(abs(MLR$residuals) ~ MLR$fitted.values, main = "Absolute Value of Residuals vs. Fitted")
+abline(h=0)
+dev.off()#reset the plot layout to default
 ```
 
+We don't see a fan shape here. It appears that the variability of the residual stays constant as the value of the fitted or the predicted values change, so, the constant variability condition appears to be met. 
 
+The absolute value of residuals plot can be thought of simply the first plot folded in half. So if we were to see a fan shape in the first plot, we would see a triangle in the absolute value of residuals versus fitted plot. Doesn't exactly seem to be the case, so it seems like this condition is met as well. 
 
+##### Independent Residuals
+Independent residuals basically means independent observations. If we have any time series structure, or if we're suspecting that there may be any time series structure in our data set, we can check for independent residuals using the residuals versus the order of data collection plot. If that is not a consideration, to check to see, if the residuals are independent, we don't really have another diagnostic approach, diagnostic graph that we can use. Instead, we want to go back to first principles and think about how the data are sampled. The sampling of the data to obtain independent observations was discussed in the beginning of this analysis and we reached the conclusion that the data is a random sample and is generalizable.
 
 * * *
 
@@ -319,6 +327,26 @@ The project objective for this section:
 
 *Pick a movie from 2016 (a new movie that is not in the sample) and do a prediction for this movie using your the model you developed and the `predict` function in R. Also quantify the uncertainty around this prediction using an appropriate interval.*
 
+The movie which audience score we will try to predict is *The Huntsman: Winter's War*.  Using data from IMDB and Rotten Tomatoes a dataframe is created:
+```{r}
+huntsman <- data.frame(genre = "Action & Adventure", runtime = 121, mpaa_rating = "PG-13",  critics_score = 17, best_any = "Yes")
+```
+The *genre* and *log_imdb_num_votes* variables come from the IMDb website and the *critics_score* variable and the response come from the Rotten Tomatoes website. We will now predict the audience score with our model.
+
+Let's use our regression model to predict the `audience_score`:
+
+```{r}
+huntsman_score <- predict(MLR, newdata = huntsman, interval = "prediction")
+huntsman_score
+```
+Let's evaluate the output from the *The Huntsman: Winter's War* prediction:
+
+1. The predicted `audience_score` is `r huntsman[1]`.
+2. The 95% confidence interval is `r huntsman[2]` - `r huntsman[3]`.
+
+Note:  The actual `audience_score` for is 48%[https://www.rottentomatoes.com/m/the_huntsman_winters_war/].
+
+With this information we can conclude that we are 95% confident that the actual `audience_score` for *The Huntsman: Winter's War* is between `r huntsman[2]` and `r huntsman[3]`.  The model returns an interval that includes our predicted value of `r huntsman[1]`.
 
 * * *
 
@@ -327,3 +355,36 @@ The project objective for this section:
 The project objective for this section:
 
 *A brief summary of your findings from the previous sections without repeating your statements from earlier as well as a discussion of what you have learned about the data and your research question. You should also discuss any shortcomings of your current study (either due to data collection or methodology) and include ideas for possible future research.*
+
+We began this analysis with 32 variables that seemed to provide promise that we could build a robust model to predict the `audience_score` reliably.  However, as the data was examined and the variables evaluated and modified to meet the needs of the research question, our final data set was limited to one response variable and 5 explanatory variables.  Our model selection determined that the best performing model was the original full model that had the highest adjusted R^2 value.
+
+The model did provide sufficient accuracy to properly predict the value of a 2016 movie - the predicted value fell within the 95% confidence levels.  However, it is clear the model needs improvement.  We can explain only 56% of the variance of `audience_score`.  In the future we might consider:
+
+- Perhaps not all the explanatory variables are linear.  using a polynomial or other non-linear regression analysis would provide a higher performing predictive model.
+- What other data could we add to the model to improve its accuracy?  
+- We reduced the data set record count from 336 observations to 117.  Perhaps a larger set of data would help improve the model.
+- Testing some variable transformation may help improve the model.
+
+##Appendix
+
+While working on this project I learned about other packages that provide useful tools understanding linear regression.  They are provided below should a reader want to delve more deeply into this topic.
+
+```{r}
+# Evaluate Nonlinearity
+# component + residual plot 
+crPlots(MLR)
+# Ceres plots 
+ceresPlots(MLR)
+```
+
+
+```{r}
+qqPlot(MLR)
+sresid <- studres(MLR)
+sresid <- sresid[-c(22, 50)]
+hist(sresid, freq=FALSE, main="Distribution of Studentized Residuals")
+xfit<-seq(min(sresid),max(sresid),length=40) 
+yfit<-dnorm(xfit) 
+lines(xfit, yfit) 
+```
+

@@ -10,6 +10,42 @@ library(car)
 library(MASS)
 library(psych)
 
+#http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
+
+unique1 <- lapply(movies_filtered, unique)
+unique2 <- sapply(unique1, length)
+unique2 <- as.data.frame(unique2)
+colnames(unique2) <- "Count_Distinct"
+unique3<-cbind(Variables=rownames(unique2), unique2)
+rownames(unique3) <- NULL
+unique4 <- unique3 %>% mutate(Percent_Unique = 1-Count_Distinct/nrow(movies_filtered))
+unique4$Percent_Unique <- percent(unique4$Percent_Unique)
+format_table(unique4,list(Variables=formatter("span", style="color:blue")), align = "c")
+kable(unique4)
+ggplot(unique4, aes(x=Variables, y=Percent_Unique)) + geom_bar(stat = "identity")
+
+#Good to know
+library(plyr)
+count(movies_filtered, "genre")
+
+ggplot(movies_filtered, aes(x = title_type, y = audience_score)) + geom_boxplot() + 
+     xlab("Title Type") + ylab("Audience Score") + ggtitle("Audience Score vs. Title Type")
+
+movies_filtered %>% group_by(title_type) %>% summarise(median_score = median(audience_score), 
+                                                       iqr_score = IQR(audience_score))
+
+by_directors <- movies_filtered %>% group_by(director) %>% summarize(n())
+colnames(by_directors) <- c("Director_Name", "Count_Movies")
+by_directors <- by_directors[order(-by_directors$Count_Movies),]
+range(by_directors$Count_Movies)
+by_dir_cnt <- by_directors %>% group_by(Count_Movies) %>% summarize(n())
+colnames(by_dir_cnt) <- c("Num_Movies", "Num_Directors")
+ggplot(by_dir_cnt, aes(x=Num_Movies, y=Num_Directors)) +
+     geom_bar(stat = "identity", fill="lightgreen") +
+     geom_text(aes(label=Num_Directors), vjust=-.5) +
+     ggtitle("How Many Movies Did Directors Produce?") +
+     labs(x="No. of Movies Produced", y="No. of Directors")
+
 tmpMLR <- lm(audience_score ~., data=movies_filtered)
 pairs.panels(movies_filtered)
 plot(movieMLR, pch=16, which=1)
@@ -58,7 +94,7 @@ sqrt(vif(tmpMLR)) > 2 # problem?
 # component + residual plot 
 crPlots(tmpMLR)
 # Ceres plots 
-ceresPlots(tmpMLR)
+ceresPlots(MLR)
 
 
 #See this:  https://rpubs.com/FelipeRego/MultipleLinearRegressionInRFirstSteps
@@ -74,6 +110,4 @@ movies_new <- mutate(movies, best_any=ifelse(best_pic_nom=="yes", 1,
                ifelse(best_dir_win=="yes", 1,
                ifelse(top200_box=="yes", 1, 0)))))))
 
-#Good to know
-library(plyr)
-count(movies_filtered, "genre")
+
