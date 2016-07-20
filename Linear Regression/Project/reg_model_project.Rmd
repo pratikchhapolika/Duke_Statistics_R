@@ -70,12 +70,12 @@ The project objective for this section:
 
 *Develop a research question that you want to answer using these data and a multiple linear regression model. You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.  Include a brief discussion why this question is of interest to you and/or your audience.*
 
-I have a teenage daughter who sees movies with her friends every week.  Occasionally I take a gaggle of girls to the movies and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrible - in my opinion.  I am often amazed how frequently my perceptions differ from young teenagers.  (I know I should not be surprised.)
+I have a teenage daughter who sees movies with her friends every week.  Occasionally I take a gaggle of girls to the movies and see it with them - sitting in a different part of the theater of course!  Some of the movies are just terrible - in my opinion.  I am often amazed how frequently my perceptions differ from young teenagers.  (I know I should not be surprised.) Do the variables that contribute to movie popularity more closely match my views or the perceptions of a teenage?
+
+Therefore my research question is:
 
 Research Question:  What does it take to make a movie popular?  
-
-I am really curious.  Do the variables that contribute to movie popularity more closely match my views or the perceptions of a teenage?
-
+ 
 * * *
 
 ## Part 3: Exploratory data analysis
@@ -120,10 +120,12 @@ The data frame has 651 records and 32 attributes:
 - `imdb_id`: IMDB ID of the movie
 - `rt_url`: Link to Rotten Tomatoes page for the movie
 
+#### Response Variable Selection
 The `audience_score` is the response variable for my analysis.  It is the variable we will solve for in the analysis.  Why did I chose `audience_score` instead of the `imdb_rating`?  No specific reason.  It was a coin toss.  Both variables are correlated so picking one over the other is a random choice on my part.  Here is the correlation calculation:
 ```{r correlation}
 cor(movies$imdb_rating, movies$audience_score)
 ```
+#### Filter the Data
 Not all of the variables are relevant to my research question.   I have limited the movies data set to movies released later than 1999.  Younger people likely hold a certain level of prejudice against *old movies*.  I also remove the dates related to release schedules and all the individual actors.
 ```{r selectVariables}
 movies_filtered <- filter(movies, thtr_rel_year >1999)
@@ -170,6 +172,7 @@ movies_filtered$best_any <- factor(movies_filtered$best_any, labels = c("No", "Y
 #Remove the 6 variables that have been consolidated into best_any
 movies_filtered <- select(movies_filtered, genre, runtime, mpaa_rating, imdb_rating, imdb_num_votes, critics_score, audience_score, best_any)
 ```
+####Final Working Data Set
 We have made many data transformations.  Let's review the current state of the data:
 
 ```{r}
@@ -183,6 +186,8 @@ table(movies_filtered$best_any)
 ```
 
 This looks much better!
+
+#### Data Exploration & Discovery
 
 Let's focus a moment of `audience_score`.  Since it is the variable of interest, let's consider it's distribution.  For linear regression, we need the date to be normally distributed.
 ```{r}
@@ -238,8 +243,8 @@ We saw in the model summary above that genre - Mystery & Suspense has the highes
 
 Conversely, both of the `mpaa_rating` variable output non-significant p-values.  Therefore they are all candidates for removal. Let's do that now:
 ```{r}
-MLR_mpaa <- lm(audience_score ~. -mpaa_rating, data=movies_filtered)
-summary(MLR2)
+MLR1 <- lm(audience_score ~. -mpaa_rating, data=movies_filtered)
+summary(MLR1)
 ```
 In the table below, the results of the linear regression without the `mpaa_rating` variable is show in the first line of Step 1.  The adjusted R^2 value is 0.7027 - just a bit higher than the full model.  (Could automate this process [http://www.r-bloggers.com/variable-selection-using-automatic-methods/] but the project demands)
 
@@ -281,6 +286,7 @@ Let's evaluate each of these assumption.
 ##### Linear relationships between Numerical x and y
 
 ```{r}
+MLR2 <- update(MLR1, .~. -runtime)
 par(mfrow=c(1,2))
 plot(MLR2$residuals ~ movies_filtered$critics_score, main = "Residuals vs.critics_score")
 abline(h=0)
@@ -297,7 +303,7 @@ hist(MLR2$residuals, main = "Histogram of Residuals")
 qqnorm(MLR2$residuals, main = "Normal Probability Plot of Residuals")
 qqline(MLR2$residuals)
 ```
-Both of these plots appear to support the rsiduals are nearly normal with a mean of 0.
+Both of these plots appear to support the residuals are nearly normal with a mean of 0.
 
 ##### Variablility of residuals is nearly constant
 ```{r}
@@ -357,7 +363,9 @@ The project objective for this section:
 
 We began this analysis with 32 variables that seemed to provide promise that we could build a robust model to predict the `audience_score` reliably.  However, as the data was examined and the variables evaluated and modified to meet the needs of the research question, our final data set was limited to one response variable and 7 explanatory variables.  Our model selection determined that the best performing model was the model with an adjusted R^2 value of ~70%.
 
-The model provided  accuracy to properly predict the value of a 2016 movie - the predicted value fell within the 95% confidence levels.  We can explain only 70% of the variance of `audience_score`.  In the future we might consider:
+The model provided  accuracy to properly predict the value of a 2016 movie - the predicted value fell within the 95% confidence levels.  We can explain only 70% of the variance of `audience_score`.  I submit this is a relatively high performing linear regression predicative model model the relatively basic tools used to construct it.  I am happy with the results.
+
+In the future we might consider:
 
 - Perhaps not all the explanatory variables are perfectly linear.  using a polynomial or other non-linear regression analysis would provide a higher performing predictive model.
 - What other data could we add to the model to improve its accuracy?  
