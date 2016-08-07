@@ -100,6 +100,7 @@ ceresPlots(MLR)
 #See this:  https://rpubs.com/FelipeRego/MultipleLinearRegressionInRFirstSteps
 #See this https://rpubs.com/FelipeRego - really good stuff
 #See http://www.r-bloggers.com/the-relative-importance-of-predictors-let-the-games-begin/
+# http://www.r-tutor.com/elementary-statistics/simple-linear-regression/prediction-interval-linear-regression
 
 
 #Create a new varaible where best_anything = Yes if any best* = Yes
